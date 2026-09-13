@@ -50,7 +50,7 @@ npm test
 | `observations.json` | Accepted front-to-back boards, visible-change tags, and unreadable-frame gaps |
 | `random-trials.json` | Every attempted branch, its winner, alignment, decision options/selected choices, overrides, and random tape |
 | `engine.json` | Structured BattleEvents, engine revision, random choices, and random-draw tape for the selected trial |
-| `report.json`, `report.md` | First unmatched **observed** checkpoint, nearest engine snapshots, differences, and implicated source files |
+| `report.json`, `report.md` | Full browser/engine boards for the current and preceding accepted checkpoints, screenshot links, alternative alignments, intervening events, differences, and implicated source files |
 | `regression.fixture.json` | Config, captured RNG tape, and browser reference for engine regression work |
 
 The initial browser board must match the input before later frames are compared. Unknown enums, unsupported packs, duplicate slots, and inconsistent levels fail normalization. Temporary stats are included; slots are reversed from SAP coordinates to engine order. Ability activation counts (`AcCo`) are not confused with consumed triggers (`TrCo`). Complex copied/swallowed ability memory is currently flagged for explicit mapping.

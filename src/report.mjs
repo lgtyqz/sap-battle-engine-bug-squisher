@@ -1,3 +1,4 @@
+import { checkpointHistory, renderCheckpointHistory } from './checkpoint-report.mjs';
 import { resolve } from 'node:path';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { searchBranches } from './search.mjs';
@@ -14,7 +15,8 @@ export async function diagnose(normalized, reference, outDir, {maxTrials=64}={})
   const context=sequence==null?[]:run.events.filter(e=>e.sequence>=intervalStart&&e.sequence<=sequence+2);
   const checkpoint=reference?.checkpoints[alignment.checkpoint];
   const evidence=checkpoint?{frame:resolve(reference.source??'.',checkpoint.evidence.frame),timeMs:checkpoint.timeMs,board:checkpoint.board}:null;
-  const report={schemaVersion:1,metadata:normalized.metadata,engine:run.revision,status:alignment.status,
+  const history=checkpointHistory(reference,alignment,run.events);
+  const report={schemaVersion:1,checkpointHistory:history,metadata:normalized.metadata,engine:run.revision,status:alignment.status,
     warnings:normalized.warnings,evidence,coverage:reference?{accepted:reference.checkpoints.length,gaps:reference.gaps?.length??0,complete:reference.complete}:null,search:searched?.search??null,alignment,implicated:sourceCandidates(context),eventContext:context,
     outcome:{reported:normalized.metadata.reportedOutcome,observed:reference?.outcome??null,engine:run.winner,matchesObserved:alignment.outcomeMatch??null},
     caveats:['SAP Seed is preserved as metadata and used as an engine trial seed; RNG equivalence is unverified.',
@@ -33,6 +35,6 @@ export async function diagnose(normalized, reference, outDir, {maxTrials=64}={})
   const diffLines=(alignment.closest?.[0]?.differences??[]).map(d=>`| ${d.path} | ${JSON.stringify(d.observed)} | ${JSON.stringify(d.engine)} |`).join('\n');
   const evidenceText=evidence?`[Browser evidence](<${evidence.frame}>) at ${evidence.timeMs} ms.\n\n| Field | Browser | Closest engine snapshot |\n| --- | --- | --- |\n${diffLines}`:'';
   const sourceLines=report.implicated.map(s=>`- ${s.ability??s.name}: \`${s.file}:${s.line}\` (${s.reason})`).join('\n');
-  await writeFile(`${outDir}/report.md`, `# SAP battle diagnosis\n\nStatus: **${report.status}**\n\nBattle: ${normalized.metadata.battleId}; turn ${normalized.metadata.turn}.\n\nReported outcome (input metadata): ${report.outcome.reported}; browser observed winner: ${report.outcome.observed?.winner??'unverified'}; engine trial: ${run.winner}.\n\n${alignment.reason??`First unmatched observed checkpoint: ${alignment.checkpoint ?? 'none'}.`}\n\n${evidenceText}\n\n${sourceLines}\n\n${searched?`Tried ${searched.search.attempted} choice branches (budget ${maxTrials}); search is not exhaustive.`:''}\n\n${report.coverage?`Accepted ${report.coverage.accepted} checkpoints; retained ${report.coverage.gaps} unreadable frames as gaps.`:''}\n\n${report.caveats.map(s=>'- '+s).join('\n')}\n${normalized.warnings.map(s=>'- '+s).join('\n')}\n`);
+  await writeFile(`${outDir}/report.md`, `# SAP battle diagnosis\n\nStatus: **${report.status}**\n\nBattle: ${normalized.metadata.battleId}; turn ${normalized.metadata.turn}.\n\nReported outcome (input metadata): ${report.outcome.reported}; browser observed winner: ${report.outcome.observed?.winner??'unverified'}; engine trial: ${run.winner}.\n\n${alignment.reason??`First unmatched observed checkpoint: ${alignment.checkpoint ?? 'none'}.`}\n\n${evidenceText}\n\n${renderCheckpointHistory(history,context,reference?.gaps,reference?.source)}\n\n## Implicated sources\n\n${sourceLines}\n\n${searched?`Tried ${searched.search.attempted} choice branches (budget ${maxTrials}); search is not exhaustive.`:''}\n\n${report.coverage?`Accepted ${report.coverage.accepted} checkpoints; retained ${report.coverage.gaps} unreadable frames as gaps.`:''}\n\n${report.caveats.map(s=>'- '+s).join('\n')}\n${normalized.warnings.map(s=>'- '+s).join('\n')}\n`);
   return report;
 }
