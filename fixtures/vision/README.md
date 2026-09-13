@@ -1,0 +1,1 @@
+These stat strips come from the injected sample battle in browser SAP (1280×720 canvas), frames 0 and 2. Other screen areas are blanked. Glyph templates were rendered from the supplied LapsusPro-Bold.otf using the browser canvas. They exercise real rendered digits, including negative health, independently of the engine.
