@@ -7,7 +7,8 @@
     "build:ocr": "mkdir -p .scratch && swiftc -module-cache-path .scratch/swift-cache scripts/ocr.swift -o .scratch/sap-ocr",
     "diagnose": "node src/cli.mjs diagnose",
     "capture": "node --env-file=.env src/cli.mjs capture",
-    "pipeline": "node --env-file=.env src/cli.mjs run"
+    "pipeline": "node --env-file=.env src/cli.mjs run",
+    "pipeline:all": "node --env-file=.env scripts/run-all-scenarios.mjs"
   },
   "author": "",
   "license": "ISC",

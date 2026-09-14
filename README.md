@@ -27,6 +27,14 @@ npm run pipeline -- "/path/to/gaped-battle-01a097ff-4e4b-76f4-9c92-e167d358184c-
 
 `npm run pipeline` invokes `run` with credentials loaded from `.env`. Use `--headed` to see the isolated Chrome window. The turn is taken from `UserBoard.Tur`. The percentages in an alert are context, not the source of truth for individual events.
 
+To process every JSON file in `bug-scenarios` sequentially, name each file with its replay UUID (for example, `gaped-battle-01a097ff-4e4b-76f4-9c92-e167d358184c-turn-6.json`) and run:
+
+```sh
+npm run pipeline:all
+```
+
+The batch launches one headless Chrome instance, logs in once, and keeps the same SAP page alive while it processes the scenarios sequentially. After each result screen it uses the replay menu's **Return to menu** action and verifies that **History** is visible before continuing. Per-battle response overrides are removed before the next battle starts. Each scenario's complete output is kept separately in `artifacts/bug-scenarios/<filename-without-.json>/`. Use `npm run pipeline:all -- --trials 32` to change the diagnosis budget or append `--headed` to show the shared browser. The runner continues after a failed scenario so outputs from every attempted scenario are retained, then exits unsuccessfully if any scenario failed.
+
 Stages can also run independently:
 
 ```sh
@@ -53,7 +61,7 @@ npm test
 | `report.json`, `report.md` | Full browser/engine boards for the current and preceding accepted checkpoints, screenshot links, alternative alignments, intervening events, differences, and implicated source files |
 | `regression.fixture.json` | Config, captured RNG tape, and browser reference for engine regression work |
 
-The initial browser board must match the input before later frames are compared. Unknown enums, unsupported packs, duplicate slots, and inconsistent levels fail normalization. Temporary stats are included; slots are reversed from SAP coordinates to engine order. Ability activation counts (`AcCo`) are not confused with consumed triggers (`TrCo`). Complex copied/swallowed ability memory is currently flagged for explicit mapping.
+Initial board verification is recorded separately. If the initial frame is unreadable or no readable board matches the input, later independent observations are retained and the diagnosis is marked inconclusive. Unknown enums, unsupported packs, duplicate slots, and inconsistent levels fail normalization. Temporary stats are included; slots are reversed from SAP coordinates to engine order. Ability activation counts (`AcCo`) are not confused with consumed triggers (`TrCo`). Complex copied/swallowed ability memory is currently flagged for explicit mapping.
 
 ## Replay injection
 
@@ -87,7 +95,7 @@ The supplied asset catalogs remain the authority for names. Attached battle JSON
 
 For replay `01a097ff-4e4b-76f4-9c92-e167d358184c`, turn 6, a fresh CLI session successfully logged in, injected the supplied battle, and captured 20 viewer pauses. Recognition accepted 17 checkpoints, including Fairy Armadillo → Fairy Ball transformations; three Leech frames remained ambiguous. See `artifacts/sample/report.md` and `artifacts/sample/regression.fixture.json` in this workspace.
 
-After a 64-branch search, the first unmatched accepted checkpoint shows the opponent's Hummingbird at **7/4** in the browser versus **9/6** in the closest engine snapshot. The preceding engine interval includes Bass granting experience and Hummingbird leveling up. Bass targeting is therefore a lead for review, not an automatically proven root cause. The generated fixture reproduces the unmatched checkpoint (`regress` exits 1). The pipeline's 15 tests pass.
+After a 64-branch search, the first unmatched accepted checkpoint shows the opponent's Hummingbird at **7/4** in the browser versus **9/6** in the closest engine snapshot. The preceding engine interval includes Bass granting experience and Hummingbird leveling up. Bass targeting is therefore a lead for review, not an automatically proven root cause. The generated fixture reproduces the unmatched checkpoint (`regress` exits 1). The pipeline's 18 tests pass.
 
 
 ## Matching browser randomness
@@ -101,3 +109,16 @@ For independently observed choices, references may include `randomChoices`, for 
 For Pandora's Box, an explicitly identified immediate post-toy checkpoint can be tagged `phase: "after-pandoras-box"`. On full five-slot boards, observed equipment automatically guides the per-slot item choices. If the item isn't available in the current pool, search changes the pool first, then discovers and selects the item. The recognizer does not yet automatically identify this precise ability boundary; later frames must not be tagged this way because equipment can be consumed or replaced. Sparse boards require explicit choice observations to avoid guessing original slots.
 
 The Pandora test uses a clearly labeled synthetic engine oracle with ten pets and twenty conditional pool/item choices. It verifies bounded recovery and exact replay of the resulting event trace; it is not validation against a live SAP Pandora battle. The saved SAP sample still lacks an independently verified winner. Reports retain missing evidence and exhausted budgets as limitations, not proof of an engine defect.
+
+
+## Batch capture reliability and performance
+
+Each shared browser session sets **Settings → Customize → Held Food → Static** and verifies the value before replay capture. Perk recognition also checks color and candidate separation; ambiguous food remains unobserved. Readiness detection tolerates a missing AUTOPLAY OCR label when PLAY and REWIND/SKIP identify the paused viewer. Replay navigation waits for the share-code screen without clicking Watch Replay until the new code is entered. Capture failures after login save `failure.png` and `failure.json`, including the injection count.
+
+Unity's omitted pet enum defaults to zero (Ant). Pack 4 currently uses a named, empty custom pack, as requested; this assumption is recorded in normalization metadata and does not supply a replacement summon pool.
+
+An unreadable frame 0 no longer aborts recognition of the rest of the recording. `initialChecks` stores differences against the input, `initialVerified` records whether a readable initial board was found, and missing initial evidence keeps the report inconclusive. This does not reconstruct an initial state from engine predictions.
+
+Batch runs reuse one sprite worker and glyph templates, initialize the asset index during browser capture, cache unchanged pet crops and decoded assets, and use a coarse template shortlist before detailed scale/rotation matching. Playback controls are read from an enlarged crop, while full screenshots remain the source of board evidence. Paused screenshots are reused for OCR and saved evidence. Each successful pipeline run writes `timings.json` and prints capture, recognition, and diagnosis times. Browser loading, SAP animations, and uncertain visual recognition still take time; these changes do not skip observed ability steps.
+
+Reports embed screenshots inline through relative `evidence/` paths. Keep that folder beside `report.md` when moving or sharing a report.

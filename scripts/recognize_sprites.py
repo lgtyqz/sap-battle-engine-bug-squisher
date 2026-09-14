@@ -1,5 +1,7 @@
 """Local SIFT matching against supplied assets; stdin JSON-lines -> stdout JSON-lines."""
 import cv2, numpy as np, json, sys
+from functools import lru_cache
+from collections import OrderedDict
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent.parent
 cv2.setNumThreads(1)
@@ -43,13 +45,40 @@ for flip in [False,True]:
     banks[flip]=(entries,flann)
 
 seen_names=set()
+crop_cache=OrderedDict()
+perk_paths={r['Name']:str(ROOT/'Sprite'/'Food'/(r['NameId']+'.png')) for r in json.loads((ROOT/'perks.json').read_text())}
+pet_rows=json.loads((ROOT/'pets.json').read_text())
+@lru_cache(maxsize=1024)
+def load_art(path):
+    return cv2.imread(path,cv2.IMREAD_UNCHANGED)
+
+
+@lru_cache(maxsize=2048)
+def coarse_art(path,flip):
+    raw=load_art(path)
+    if flip:raw=cv2.flip(raw,1)
+    art=cv2.resize(raw,(60,60))
+    mask=(art[:,:,3]>220).astype(np.uint8)*255;mask[:18]=0
+    return art[:,:,:3],mask
 
 def template_fallback(crop,slot,hints):
-    candidates=[]
-    for row in json.loads((ROOT/'pets.json').read_text()):
+    # Cheap half-resolution scan shortlists assets before five-scale/rotation matching.
+    small=cv2.resize(crop,None,fx=.5,fy=.5)
+    coarse=[]
+    for row in pet_rows:
         path=ROOT/'Sprite'/'Pets'/(row['NameId']+'.png')
         if not path.exists():continue
-        raw=cv2.imread(str(path),cv2.IMREAD_UNCHANGED)
+        art,mask=coarse_art(str(path),slot<5)
+        score=float(np.nanmin(cv2.matchTemplate(small,art,cv2.TM_SQDIFF_NORMED,mask=mask)))
+        coarse.append((score,row))
+    coarse.sort(key=lambda item:item[0])
+    names=set(hints)|seen_names|{row['Name'] for _,row in coarse[:24]}
+    candidates=[]
+    for row in pet_rows:
+        if row['Name'] not in names:continue
+        path=ROOT/'Sprite'/'Pets'/(row['NameId']+'.png')
+        if not path.exists():continue
+        raw=load_art(str(path))
         if slot<5:raw=cv2.flip(raw,1)
         best=10.0
         for size in [112,116,120,124,128]:
@@ -61,10 +90,10 @@ def template_fallback(crop,slot,hints):
     candidates.sort(key=lambda c:c['error'])
     if candidates[0]['error']>.13:
         names=seen_names|set(hints+[c['name'] for c in candidates[:5]])
-        rows={r['Name']:r for r in json.loads((ROOT/'pets.json').read_text())}
+        rows={r['Name']:r for r in pet_rows}
         for candidate in candidates:
             if candidate['name'] not in names:continue
-            raw=cv2.imread(str(ROOT/'Sprite'/'Pets'/(rows[candidate['name']]['NameId']+'.png')),cv2.IMREAD_UNCHANGED)
+            raw=load_art(str(ROOT/'Sprite'/'Pets'/(rows[candidate['name']]['NameId']+'.png')))
             if slot<5:raw=cv2.flip(raw,1)
             for angle in [-20,-15,-10,10,15,20]:
                 rotated=cv2.warpAffine(raw,cv2.getRotationMatrix2D((128,128),angle,1),(256,256))
@@ -73,6 +102,24 @@ def template_fallback(crop,slot,hints):
                     scores=cv2.matchTemplate(crop,art[:,:,:3],cv2.TM_SQDIFF_NORMED,mask=mask)
                     candidate['error']=min(candidate['error'],float(np.nanmin(scores)))
     return sorted(candidates,key=lambda c:c['error'])[:3]
+
+def perk_color_error(name,flip,matrix,crop):
+    art=load_art(perk_paths[name])
+    if flip:art=cv2.flip(art,1)
+    hsv=cv2.cvtColor(art[:,:,:3],cv2.COLOR_BGR2HSV)
+    y,x=np.where((art[:,:,3]>220)&(hsv[:,:,1]>80)&(hsv[:,:,2]>60))
+    if len(x)<10:return None
+    # Compare colored interior samples at the location established by SIFT geometry.
+    x=x[::4];y=y[::4]
+    projected=np.column_stack((x,y,np.ones(len(x))))@matrix.T
+    target=cv2.cvtColor(cv2.resize(crop,None,fx=2,fy=2),cv2.COLOR_BGR2HSV)
+    px=np.rint(projected[:,0]).astype(int);py=np.rint(projected[:,1]).astype(int)
+    valid=(px>=0)&(px<target.shape[1])&(py>=0)&(py<target.shape[0])
+    px=px[valid];py=py[valid];x=x[valid];y=y[valid]
+    valid=target[py,px,1]>60
+    if valid.sum()<10:return None
+    diff=np.abs(hsv[y[valid],x[valid],0].astype(float)-target[py[valid],px[valid],0])
+    return float(np.median(np.minimum(diff,180-diff)))
 
 def recognize(path,active_slots=None):
     image=cv2.imread(path)
@@ -85,6 +132,10 @@ def recognize(path,active_slots=None):
         center=80+120*slot+(40 if slot>=5 else 0)
         left=max(0,center-72)
         crop=image[358:492,left:min(1280,center+72)]
+        cache_key=(slot<5,hashlib.sha256(crop.tobytes()).digest())
+        if cache_key in crop_cache:
+            crop_cache.move_to_end(cache_key)
+            result.append(crop_cache[cache_key]);continue
         gray=cv2.cvtColor(cv2.resize(crop,None,fx=2,fy=2),cv2.COLOR_BGR2GRAY)
         kp,desc=sift.detectAndCompute(gray,None)
         candidates=[]
@@ -108,13 +159,17 @@ def recognize(path,active_slots=None):
                 n=int(inliers.sum())
                 scale=float(np.linalg.norm(matrix[:,0]))
                 if n<4 or (kind=='pets' and not .75<scale<1.15) or (kind=='perks' and not .12<scale<.6):continue
-                candidates.append({'kind':kind,'name':name,'inliers':n,'matches':len(good),'scale':scale,'ratio':n/len(good)})
+                color_error=perk_color_error(name,flip,matrix,crop) if kind=='perks' else None
+                if kind=='perks' and (color_error is None or color_error>15):continue
+                candidates.append({'colorError':color_error,'kind':kind,'name':name,'inliers':n,'matches':len(good),'scale':scale,'ratio':n/len(good)})
         candidates.sort(key=lambda c:(-c['inliers'],-c['ratio']))
         pets=[c for c in candidates if c['kind']=='pets'][:3]
         if not pets or pets[0]['inliers']<6 or pets[0]['ratio']<.7 or (len(pets)>1 and pets[0]['inliers']-pets[1]['inliers']<2):
             pets=template_fallback(crop,slot,[p['name'] for p in pets])
         if pets and ((pets[0].get('method')=='template' and pets[0]['error']<.18) or pets[0].get('inliers',0)>=6):seen_names.add(pets[0]['name'])
         result.append({'pets':pets, 'perks':[c for c in candidates if c['kind']=='perks'][:3]})
+        crop_cache[cache_key]=result[-1]
+        if len(crop_cache)>128:crop_cache.popitem(last=False)
     return result
 for line in sys.stdin:
     try:

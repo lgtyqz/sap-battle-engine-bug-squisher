@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 const catalog = file => JSON.parse(readFileSync(new URL(`../${file}.json`, import.meta.url)));
 export const catalogs = Object.fromEntries(['pets', 'perks', 'toys', 'food'].map(k => [k, catalog(k)]));
 const byId = Object.fromEntries(Object.entries(catalogs).map(([k, rows]) => [k, new Map(rows.map(r => [String(r.Id), r]))]));
-const packs = {0:'Turtle',1:'Puppy',2:'Star',5:'Golden',6:'Unicorn',7:'Danger'};
+const packs = {0:'Turtle',1:'Puppy',2:'Star',4:'Custom',5:'Golden',6:'Unicorn',7:'Danger'};
 export const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const number = (value, fallback, path) => {
   if (value == null) return fallback;
@@ -18,7 +18,7 @@ function lookup(kind, id, path) {
 /** SAP coordinates are back-to-front; engine arrays are front-to-back. */
 export function normalizeBattle(battle, {replayId = null} = {}) {
   if (!battle?.UserBoard?.Mins || !battle?.OpponentBoard?.Mins) throw new Error('Expected a full SAP battle with UserBoard and OpponentBoard');
-  const warnings = [];
+  const warnings = [],assumptions=[];
   const config = {turn:number(battle.UserBoard.Tur,1,'UserBoard.Tur'),simulationCount:1,logsEnabled:true,maxLoggedBattles:1,
     captureRandomDraws:true,captureRandomDecisions:true,optimizeDeterministicSimulations:false,mana:true,
     seed:number(battle.Seed,0,'Seed')};
@@ -28,7 +28,11 @@ export function normalizeBattle(battle, {replayId = null} = {}) {
     if (board.Mins.Size?.x != null && board.Mins.Size.x !== 5) throw new Error(`${side}: only five-slot starting boards are supported`);
     if (!packs[board.Pack ?? 0]) throw new Error(`${side}: unsupported pack ${board.Pack}; custom decks require explicit mapping`);
     config[`${side}Pack`] = packs[board.Pack ?? 0];
-    if (board.Deck) warnings.push(`${side}: custom deck metadata is not mapped; random summon pools may differ`);
+    if(board.Pack===4){
+      config.customPacks??=[{name:'Custom',...Object.fromEntries([1,2,3,4,5,6].map(t=>[`tier${t}Pets`,[]])),foods:[],perks:[],spells:[]}];
+      assumptions.push(`${side}: pack 4 uses an empty custom deck as requested`);
+    }
+    if (board.Deck && board.Pack!==4) warnings.push(`${side}: custom deck metadata is not mapped; random summon pools may differ`);
     for (const [key, raw] of Object.entries({GoldSpent:'GoSp',RollAmount:'Rold',SummonedAmount:'MiSu',Level3Sold:'MSFL',TransformationAmount:'TrTT'})) {
       config[`${side}${key}`] = number(board[raw],0,`${side}.${raw}`);
     }
@@ -40,7 +44,7 @@ export function normalizeBattle(battle, {replayId = null} = {}) {
       // Unity omits default-valued fields: absent Poi.x means zero, not array index.
       const x = number(raw.Poi?.x,0,`${side}.Poi.x`);
       if (!Number.isInteger(x) || x<0 || x>4 || pets[4-x]) throw new Error(`${side}: duplicate or invalid slot ${x}`);
-      const row = lookup('pets',raw.Enu,`${side}[${x}]`);
+      const row = lookup('pets',raw.Enu??0,`${side}[${x}]`);
       const level = number(raw.Lvl,1,'Lvl');
       if (![1,2,3].includes(level)) throw new Error(`Invalid level ${level}`);
       const exp = number(raw.Exp,({1:0,2:2,3:5})[level],'Exp');
@@ -50,7 +54,7 @@ export function normalizeBattle(battle, {replayId = null} = {}) {
       pets[4-x] = {name:row.Name,attack:stat('At'),health:stat('Hp'),exp,
         equipment:raw.Perk == null || raw.Perk===0 ? null : lookup('perks',raw.Perk,'Perk').Name,
         mana:number(raw.Mana,0,'Mana'),triggersConsumed:Math.max(0,...triggers)};
-      identities[side][4-x] = {enum:raw.Enu,name:row.Name,nameId:row.NameId,sapId:raw.Id ?? null,abilities:raw.Abil ?? []};
+      identities[side][4-x] = {enum:raw.Enu??0,name:row.Name,nameId:row.NameId,sapId:raw.Id ?? null,abilities:raw.Abil ?? []};
       if (raw.MiMs || raw.Pow || (raw.Abil ?? []).some(a=>a.Nat===false)) warnings.push(`${side}[${4-x}] ${row.Name}: ability memory/copied ability needs explicit mapping`);
     }
     config[`${side}Pets`] = pets;
@@ -63,7 +67,7 @@ export function normalizeBattle(battle, {replayId = null} = {}) {
       config[`${key}Level`] = number(raw.Lvl,1,'toy.Lvl');
     }
   }
-  return {schemaVersion:1,config,identities,warnings,metadata:{replayId,battleId:battle.Id ?? null,turn:config.turn,
+  return {schemaVersion:1,config,identities,warnings,metadata:{replayId,battleId:battle.Id ?? null,turn:config.turn,assumptions,
     sapSeed:battle.Seed ?? null,reportedOutcome:({1:'player',2:'opponent',3:'draw'})[battle.Outcome] ?? null,
     inputHash:digest(battle),rngCompatibility:'unverified'}};
 }

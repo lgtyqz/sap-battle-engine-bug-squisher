@@ -22,11 +22,11 @@ export function checkpointHistory(reference,alignment,events) {
    engineCandidates:sequences.map(sequence=>events.find(e=>e.sequence===sequence)).filter(Boolean)};
  });
 }
-export function renderCheckpointHistory(history,context,gaps=[],source='.') {
+export function renderCheckpointHistory(history,context,gaps=[],source='.',images=new Map()) {
  if(!history.length)return '';
  const render=cp=>{
   const candidates=cp.engineCandidates;
-  let text=`### Checkpoint ${cp.index} — ${cp.status}\n\n[Browser screenshot](<${cp.frame}>) · ${cp.timeMs} ms · visible changes: ${cell(cp.kinds.join(', ')||'not classified')}.\n\n`;
+  let text=`### Checkpoint ${cp.index} — ${cp.status}\n\n${images.has(cp.frame)?`![Browser checkpoint ${cp.index}](${images.get(cp.frame)})`:'Screenshot unavailable'} · ${cp.timeMs} ms · visible changes: ${cell(cp.kinds.join(', ')||'not classified')}.\n\n`;
   if(cp.upcomingAbility)text+=`Upcoming ability tooltip (not necessarily the effect just completed): ${cell(cp.upcomingAbility)}.\n\n`;
   if(!candidates.length)text+=boardTable(cp.board,null)+'\n\n';
   for(const [i,e] of candidates.entries()){
@@ -42,6 +42,6 @@ export function renderCheckpointHistory(history,context,gaps=[],source='.') {
  text+='## Previous checkpoints\n\n'+(history.length>1?history.slice(0,-1).map(render).join('\n'):'No preceding accepted checkpoints.\n\n');
  if(context.length)text+='## Engine events around the divergence\n\nThe browser column repeats the current checkpoint as a fixed comparison target. These earlier engine events are context, not additional claimed mismatches.\n\n'+context.map(e=>`### Event ${e.sequence}: ${cell(e.message)}\n\n${boardTable(current.board,e.board)}\n\n`).join('');
  const priorGaps=gaps.filter(g=>g.timeMs<=current.timeMs);
- if(priorGaps.length)text+='## Unreadable browser frames before this checkpoint\n\n'+priorGaps.map(g=>`- [${cell(g.frame)}](<${resolve(source,g.frame)}>) at ${g.timeMs} ms: ${cell(JSON.stringify(g.issues??g.reason??'Recognition gap; inspect observations.json'))}`).join('\n')+'\n';
+ if(priorGaps.length)text+='## Unreadable browser frames before this checkpoint\n\n'+priorGaps.map(g=>`- ${images.has(resolve(source,g.frame))?`![${cell(g.frame)}](${images.get(resolve(source,g.frame))})`:cell(g.frame)} at ${g.timeMs} ms: ${cell(JSON.stringify(g.issues??g.reason??'Recognition gap; inspect observations.json'))}`).join('\n')+'\n';
  return text;
 }

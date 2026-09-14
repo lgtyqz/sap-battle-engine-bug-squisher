@@ -41,7 +41,15 @@ export function searchBranches(config,reference,{maxTrials=64}={}) {
   // Draw tapes belong to one trajectory; alternative branches consume different draws.
   const input={...config,randomDecisionOverrides:overrides,strictRandomOverrideValidation:true};
   if(trials.length)delete input.randomDrawOverrides;
-  const run=simulate(input),alignment=compareReference(reference,run);
+  let run;
+  try{run=simulate(input);}catch(error){
+   // A branch can change an uninstrumented ordering and invalidate a later target.
+   // Reject that trial rather than aborting the whole batch or accepting its partial log.
+   if(!best||!/random override invalid/i.test(error.message))throw error;
+   trials.push({trial:trials.length,overrides,rejected:true,error:error.message});
+   continue;
+  }
+  const alignment=compareReference(reference,run);
   const decisions=run.result.randomDecisions??[];
   const score=alignment.matches.length*1000-(alignment.closest?.[0]?.differences.length??0)+(alignment.outcomeMatch===true?100:0);
   trials.push({trial:trials.length,winner:run.winner,alignment,overrides,

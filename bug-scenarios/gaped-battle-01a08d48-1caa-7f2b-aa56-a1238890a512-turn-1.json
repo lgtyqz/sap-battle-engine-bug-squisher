@@ -1,0 +1,454 @@
+{
+  "Id": "c7b049a8-b7c2-410b-bdd9-9e179158f57c",
+  "Seed": 1608658705,
+  "Outcome": 3,
+  "ResolvedOn": "2026-09-10T21:46:43.11806+00:00",
+  "User": {
+    "Id": "de1369ca-eac4-4886-8ff5-d539d94041d2",
+    "DisplayName": "mr_duckyy"
+  },
+  "UserBoard": {
+    "Id": "f6edc999-908e-4027-a38f-bba10177a4de",
+    "UNC": 8,
+    "Sta": 4,
+    "LiMa": 6,
+    "LPM": 4,
+    "Tur": 1,
+    "GoSp": 10,
+    "Rold": 1,
+    "Ti": 1,
+    "BoCa": 99,
+    "Mins": {
+      "Size": {
+        "x": 5,
+        "y": 1
+      },
+      "Items": [
+        {
+          "Own": 1,
+          "Enu": 89,
+          "Loc": 1,
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 1
+          },
+          "At": {
+            "Perm": 2
+          },
+          "Abil": [
+            {
+              "Enu": 111,
+              "Lvl": 1,
+              "Nat": true,
+              "AcCo": 1
+            }
+          ],
+          "Cosm": 58,
+          "Id": {
+            "BoId": "f6edc999-908e-4027-a38f-bba10177a4de",
+            "Uni": 7
+          },
+          "Pri": 3
+        },
+        null,
+        {
+          "Own": 1,
+          "Enu": 88,
+          "Loc": 1,
+          "Poi": {
+            "x": 2
+          },
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 2
+          },
+          "At": {
+            "Perm": 2
+          },
+          "Abil": [
+            {
+              "Enu": 112,
+              "Lvl": 1,
+              "Nat": true
+            }
+          ],
+          "Cosm": 58,
+          "Id": {
+            "BoId": "f6edc999-908e-4027-a38f-bba10177a4de",
+            "Uni": 5
+          },
+          "Pri": 3
+        },
+        null,
+        {
+          "Own": 1,
+          "Enu": 229,
+          "Loc": 1,
+          "Poi": {
+            "x": 4
+          },
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 1
+          },
+          "At": {
+            "Perm": 4
+          },
+          "Abil": [
+            {
+              "Enu": 255,
+              "Lvl": 1,
+              "Nat": true
+            }
+          ],
+          "Cosm": 58,
+          "Id": {
+            "BoId": "f6edc999-908e-4027-a38f-bba10177a4de",
+            "Uni": 3
+          },
+          "Pri": 3
+        }
+      ]
+    },
+    "MiSC": 3,
+    "MSBo": [],
+    "MiSh": [
+      {
+        "Own": 1,
+        "Enu": 3,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 2
+        },
+        "At": {
+          "Perm": 3
+        },
+        "Abil": [
+          {
+            "Enu": 43,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 58,
+        "Id": {
+          "BoId": "f6edc999-908e-4027-a38f-bba10177a4de",
+          "Uni": 6
+        },
+        "Pri": 3
+      }
+    ],
+    "SpSC": 1,
+    "SpSh": [
+      {
+        "Id": {
+          "BoId": "f6edc999-908e-4027-a38f-bba10177a4de",
+          "Uni": 8
+        },
+        "Pri": 3,
+        "Fro": true
+      }
+    ],
+    "Adj": "Lord of the",
+    "Nou": "Rings",
+    "PrOu": 0,
+    "MiSu": 3,
+    "SpPl": [],
+    "Cosm": 58,
+    "CoMa": {},
+    "Back": 44,
+    "Masc": 9,
+    "Entr": 4,
+    "Awar": {
+      "Type": 10,
+      "PercentPosition": 0.0085,
+      "Year": 2025,
+      "Month": 8
+    },
+    "Pack": 1,
+    "Rel": {
+      "Size": {
+        "x": 2,
+        "y": 1
+      },
+      "Items": [
+        null,
+        null
+      ]
+    },
+    "Hash": -1041263391,
+    "ShRe": 2
+  },
+  "Opponent": {
+    "Id": "197d1db8-214d-44ff-ade8-f1caa0e88826",
+    "DisplayName": "Spookzyy"
+  },
+  "OpponentBoard": {
+    "Id": "e0a6f419-9278-42af-81e2-c7e4878d9284",
+    "UNC": 7,
+    "Sta": 4,
+    "LiMa": 6,
+    "LPM": 4,
+    "Tur": 1,
+    "GoSp": 10,
+    "Rold": 1,
+    "Ti": 1,
+    "BoCa": 99,
+    "Mins": {
+      "Size": {
+        "x": 5,
+        "y": 1
+      },
+      "Items": [
+        {
+          "Own": 1,
+          "Enu": 172,
+          "Loc": 1,
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 3
+          },
+          "At": {
+            "Perm": 1
+          },
+          "Abil": [
+            {
+              "Enu": 187,
+              "Lvl": 1,
+              "Nat": true
+            }
+          ],
+          "Id": {
+            "BoId": "e0a6f419-9278-42af-81e2-c7e4878d9284",
+            "Uni": 5
+          },
+          "Pri": 3
+        },
+        null,
+        {
+          "Own": 1,
+          "Enu": 3,
+          "Loc": 1,
+          "Poi": {
+            "x": 2
+          },
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 2
+          },
+          "At": {
+            "Perm": 3
+          },
+          "Abil": [
+            {
+              "Enu": 43,
+              "Lvl": 1,
+              "Nat": true
+            }
+          ],
+          "Id": {
+            "BoId": "e0a6f419-9278-42af-81e2-c7e4878d9284",
+            "Uni": 3
+          },
+          "Pri": 3
+        },
+        null,
+        {
+          "Own": 1,
+          "Enu": 141,
+          "Loc": 1,
+          "Poi": {
+            "x": 4
+          },
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 3
+          },
+          "At": {
+            "Perm": 1
+          },
+          "Abil": [
+            {
+              "Enu": 153,
+              "Lvl": 1,
+              "Nat": true
+            }
+          ],
+          "Id": {
+            "BoId": "e0a6f419-9278-42af-81e2-c7e4878d9284",
+            "Uni": 2
+          },
+          "Pri": 3
+        }
+      ]
+    },
+    "MiSC": 3,
+    "MSBo": [],
+    "MiSh": [
+      {
+        "Own": 1,
+        "Enu": 26,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 2
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 41,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Id": {
+          "BoId": "e0a6f419-9278-42af-81e2-c7e4878d9284",
+          "Uni": 6
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 161,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 3
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 175,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Id": {
+          "BoId": "e0a6f419-9278-42af-81e2-c7e4878d9284",
+          "Uni": 7
+        },
+        "Pri": 3
+      }
+    ],
+    "SpSC": 1,
+    "SpSh": [
+      {
+        "Id": {
+          "BoId": "e0a6f419-9278-42af-81e2-c7e4878d9284",
+          "Uni": 4
+        },
+        "Pri": 3,
+        "Fro": true,
+        "WFro": true
+      }
+    ],
+    "Adj": "Stormy",
+    "Nou": "Failures",
+    "PrOu": 0,
+    "MiSu": 3,
+    "SpPl": [],
+    "Masc": 12,
+    "Pack": 1,
+    "Rel": {
+      "Size": {
+        "x": 2,
+        "y": 1
+      },
+      "Items": [
+        null,
+        null
+      ]
+    },
+    "Hash": 1247693565,
+    "ShRe": 2
+  },
+  "ResultingBoard": {
+    "Id": "d794beb3-2207-83d6-2572-838589053762",
+    "UNC": 3,
+    "Sta": 4,
+    "IsBa": true,
+    "Tur": 1,
+    "GoSp": 10,
+    "Rold": 1,
+    "Ti": 1,
+    "BoCa": 198,
+    "Mins": {
+      "Size": {
+        "x": 10,
+        "y": 1
+      },
+      "Items": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "MiSC": 3,
+    "MSBo": [],
+    "MiSh": [
+      {
+        "Own": 1,
+        "Enu": 3,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 2
+        },
+        "At": {
+          "Perm": 3
+        },
+        "Abil": [
+          {
+            "Enu": 43,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 58,
+        "Id": {
+          "BoId": "f6edc999-908e-4027-a38f-bba10177a4de",
+          "Uni": 6
+        },
+        "Pri": 3
+      }
+    ],
+    "SpSC": 1,
+    "Adj": "Lord of the",
+    "Nou": "Rings",
+    "MiSu": 3,
+    "SpPl": [],
+    "Cosm": 58,
+    "CoMa": {},
+    "Back": 44,
+    "Masc": 9,
+    "Entr": 4,
+    "Awar": {
+      "Type": 10,
+      "PercentPosition": 0.0085,
+      "Year": 2025,
+      "Month": 8
+    },
+    "Pack": 1,
+    "Rel": {
+      "Size": {
+        "x": 4,
+        "y": 1
+      },
+      "Items": [
+        null,
+        null,
+        null,
+        null
+      ]
+    }
+  },
+  "EndResult": 643481811
+}
