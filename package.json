@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "playwright": "^1.63.0",
-    "sap-battle-engine": "github:lgtyqz/sap-battle-engine#main",
+    "sap-battle-engine": "github:lgtyqz/sap-battle-engine#543e5b6484c6d725495c64cc43d3b3dce810737e",
     "sharp": "^0.35.4"
   },
   "type": "module",
