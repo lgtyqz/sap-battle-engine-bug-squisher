@@ -1,7 +1,8 @@
 import sharp from 'sharp';
+import { fileURLToPath } from 'node:url';
 import { observedOutcome } from './outcome.mjs';
 import { chromium } from 'playwright';
-import { writeFile, mkdir, copyFile } from 'node:fs/promises';
+import { writeFile, mkdir, copyFile, unlink } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { recognizeText } from './ocr.mjs';
 import { installInjection, installPlaybackInjection } from './inject.mjs';
@@ -17,7 +18,54 @@ export async function canvasClick(page,x,y) {
 export async function controlText(path) {
  const crop=resolve('.scratch/controls.png');
  await sharp(path).extract({left:440,top:0,width:400,height:80}).resize(1200,240).toFile(crop);
- return (await recognizeText(crop)).map(r=>({...r,x:(440+r.x*400)/1280,y:r.y*80/720,width:r.width*400/1280,height:r.height*80/720}));
+ const rows=(await recognizeText(crop)).map(r=>({...r,x:(440+r.x*400)/1280,y:r.y*80/720,width:r.width*400/1280,height:r.height*80/720}));
+ // OCR can omit PLAY even while its white triangle is clearly visible.
+ if(!rows.some(r=>['PLAY','PAUSE'].includes(r.text.toUpperCase())) && await playIconVisible(path))
+  rows.push({text:'PLAY',x:548/1280,y:29/720,width:29/1280,height:30/720,source:'play-icon'});
+ return rows;
+}
+export async function playIconVisible(path) {
+ const white=async input=>{
+  const bytes=await input.removeAlpha().raw().toBuffer();
+  return Array.from({length:bytes.length/3},(_,i)=>bytes[i*3]>235&&bytes[i*3+1]>235&&bytes[i*3+2]>235);
+ };
+ const [actual,expected]=await Promise.all([
+  white(sharp(path).extract({left:548,top:29,width:29,height:30})),
+  white(sharp(fileURLToPath(new URL('../fixtures/vision/play-icon.png',import.meta.url))))]);
+ let intersection=0,union=0;
+ for(let i=0;i<actual.length;i++){if(actual[i]&&expected[i])intersection++;if(actual[i]||expected[i])union++;}
+ return intersection/union>.9;
+}
+export async function boardMotion(before,after) {
+ // Compare white stat glyphs per slot. Pets idle, outlines pulse and scenery
+ // animates even at a legitimate pause, so RGB equality cannot establish rest.
+ // Start below the pets themselves: their white outlines can bob several pixels
+ // while the replay is paused, but the stat glyphs remain fixed.
+ const top=495,height=45;
+ const read=path=>sharp(path).extract({left:0,top,width:1280,height}).removeAlpha().raw().toBuffer();
+ const [a,b]=await Promise.all([read(before),read(after)]);
+ const changed=Array(10).fill(0);
+ const white=(data,i)=>data[i]>210&&data[i+1]>210&&data[i+2]>210;
+ for(let y=0;y<height;y++)for(let slot=0;slot<10;slot++){
+  const center=80+120*slot+(slot>=5?40:0);
+  for(let x=center-55;x<center+55;x++){
+   const i=(y*1280+x)*3;
+   if(white(a,i)!==white(b,i))changed[slot]++;
+  }
+ }
+ return Math.max(...changed)/(110*height);
+}
+export async function outcomeFromImage(path,frame,{ocr=recognizeText}={}) {
+ const direct=observedOutcome(await ocr(path),frame);
+ if(direct)return direct;
+ // The stylized versus GAME WON label scores poorly on the full-color image.
+ // Isolate its white lettering; keep the same strict OCR confidence threshold.
+ await mkdir('.scratch',{recursive:true});
+ const crop=resolve('.scratch/result-ocr.png');
+ await sharp(path).extract({left:1000,top:410,width:270,height:145})
+  .resize(1080,580).threshold(210).negate().toFile(crop);
+ const result=observedOutcome(await ocr(crop),frame);
+ return result?{...result,preprocessing:'thresholded-result-crop'}:null;
 }
 export async function screenText(page,{controlsOnly=false}={}) {
  await mkdir('.scratch',{recursive:true});
@@ -55,23 +103,43 @@ export async function returnToMainMenu(page,{timeout=15000}={}) {
  }
  throw new Error('Browser did not return to the main menu');
 }
+export function abilityCardScalePoint(row,percent=35) {
+ // SAP's slider runs from 0% to 200%. Its track starts just below the label
+ // and spans 63% of the fixed 1280x720 canvas width.
+ if(!Number.isFinite(percent)||percent<0||percent>200)throw new Error('Ability Card Scale must be from 0% to 200%');
+ return {x:row.x+.005+(percent/200)*.63,y:row.y+row.height+.003};
+}
 export async function configureCaptureSettings(page) {
  await returnToMainMenu(page);
  await canvasClick(page,.98,.035);
  await clickText(page,'Settings');
  await clickText(page,'Customize');
+ let heldFood=null;
  for(let attempt=0;attempt<4;attempt++){
   const rows=await screenText(page),held=rows.find(r=>r.text.toLowerCase()==='held food');
   if(!held)throw new Error('Settings did not show Held Food');
   if(rows.some(r=>r.text.toLowerCase()==='static'&&Math.abs(r.y-held.y)<.04)){
-   await canvasClick(page,.022,.032);
-   await waitForText(page,'History');
-   return {heldFood:'Static'};
+   heldFood='Static';break;
   }
   await canvasClick(page,held.x+held.width/2,held.y+held.height/2);
   await page.waitForTimeout(200);
  }
- throw new Error('Could not verify Held Food = Static');
+ if(!heldFood)throw new Error('Could not verify Held Food = Static');
+ let abilityCardScale=null;
+ for(let attempt=0;attempt<4;attempt++){
+  const rows=await screenText(page),scale=rows.find(r=>r.text.toLowerCase()==='ability card scale');
+  if(!scale)throw new Error('Settings did not show Ability Card Scale');
+  if(rows.some(r=>r.text==='35%'&&Math.abs(r.y-scale.y)<.04)){
+   abilityCardScale='35%';break;
+  }
+  const point=abilityCardScalePoint(scale);
+  await canvasClick(page,point.x,point.y);
+  await page.waitForTimeout(200);
+ }
+ if(!abilityCardScale)throw new Error('Could not verify Ability Card Scale = 35%');
+ await canvasClick(page,.022,.032);
+ await waitForText(page,'History');
+ return {heldFood,abilityCardScale};
 }
 export async function openReplay(page,replayId,turn) {
  await returnToMainMenu(page);
@@ -138,18 +206,28 @@ export async function captureSteps(page,outDir,{maxSteps=100,onProgress=()=>{}}=
  for(let step=0;step<maxSteps;step++){
   // Play is present only when paused. Do not click again while a previous animation is still running.
   const until=Date.now()+15000;
-  let rows=[];
+  let rows=[],stable=false;
   while(Date.now()<until){
    rows=await screenText(page,{controlsOnly:true});
-   if(replayControls(rows).paused || !replayControls(rows).visible)break;
+   if(replayControls(rows).paused){
+    // PLAY may return before movement/stat animations have finished. Require a
+    // quiet board interval, and save the final image that passed this check.
+    await copyFile(resolve('.scratch/ui.png'),resolve('.scratch/settling.png'));
+    await page.waitForTimeout(350);
+    rows=await screenText(page,{controlsOnly:true});
+    if(replayControls(rows).paused && await boardMotion(resolve('.scratch/settling.png'),resolve('.scratch/ui.png'))<.005){stable=true;break;}
+   }else if(!replayControls(rows).visible){
+    const result=await outcomeFromImage(resolve('.scratch/ui.png'),'terminal.png');
+    if(result)break;
+   }
    await page.waitForTimeout(200);
   }
-  if(!replayControls(rows).paused){
+  if(!stable){
    // Viewer exit is evidence of capture ending, not proof that every internal effect was visible.
    await page.waitForTimeout(1500);
    const terminal='terminal.png';await (await canvasOf(page)).screenshot({path:`${outDir}/${terminal}`});
-   outcome=observedOutcome(await recognizeText(`${outDir}/${terminal}`),terminal);
-   complete=frames.length>1 && !replayControls(rows).visible;
+   outcome=await outcomeFromImage(`${outDir}/${terminal}`,terminal);
+   complete=frames.length>1 && outcome!==null;
    if(!complete)throw new Error('Lost the paused battle controls; capture is incomplete');
    break;
   }
@@ -197,6 +275,7 @@ export async function captureBattle(battle,normalized,outDir,options={}) {
   capture.injectionCount=injection.count+playback.count;
   capture.provenance=capture.injectionCount?'battle-response-override':'participation-replay-needs-input-verification';
   await writeFile(`${outDir}/capture.json`,JSON.stringify(capture,null,2));
+  for(const name of ['failure.json','failure.png'])await unlink(`${outDir}/${name}`).catch(error=>{if(error.code!=='ENOENT')throw error;});
   if(!ownsSession)await returnToMainMenu(session.page);
   return capture;
  }catch(error){

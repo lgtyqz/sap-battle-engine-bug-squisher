@@ -4,6 +4,9 @@ const catalog = file => JSON.parse(readFileSync(new URL(`../${file}.json`, impor
 export const catalogs = Object.fromEntries(['pets', 'perks', 'toys', 'food'].map(k => [k, catalog(k)]));
 const byId = Object.fromEntries(Object.entries(catalogs).map(([k, rows]) => [k, new Map(rows.map(r => [String(r.Id), r]))]));
 const packs = {0:'Turtle',1:'Puppy',2:'Star',4:'Custom',5:'Golden',6:'Unicorn',7:'Danger'};
+// Ability enums (not pet enums), verified against native Abil entries in the
+// supplied battle corpus. Keep unsupported/nested memories explicit.
+const copiedAbilityPets = {371:'Drop Bear',379:'Brain Cramp'};
 export const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const number = (value, fallback, path) => {
   if (value == null) return fallback;
@@ -55,8 +58,15 @@ export function normalizeBattle(battle, {replayId = null} = {}) {
         equipment:raw.Perk == null || raw.Perk===0 ? null : lookup('perks',raw.Perk,'Perk').Name,
         mana:number(raw.Mana,0,'Mana'),triggersConsumed:Math.max(0,...triggers)};
       identities[side][4-x] = {enum:raw.Enu??0,name:row.Name,nameId:row.NameId,sapId:raw.Id ?? null,abilities:raw.Abil ?? []};
-      if (raw.MiMs || raw.Pow || (raw.Abil ?? []).some(a=>a.Nat===false)) warnings.push(`${side}[${4-x}] ${row.Name}: ability memory/copied ability needs explicit mapping`);
+      const copied=(raw.Abil??[]).filter(a=>a.Nat!==true); // Unity omits false Nat.
+      const mapped=row.Name==='Abomination' && copied.length<=level && copied.every(a=>copiedAbilityPets[a.Enu] && !a.TrCo && [1,2,3].includes(a.Lvl??1));
+      if(mapped)copied.forEach((a,i)=>{
+        pets[4-x][`abominationSwallowedPet${i+1}`]=copiedAbilityPets[a.Enu];
+        pets[4-x][`abominationSwallowedPet${i+1}Level`]=a.Lvl??1;
+      });
+      if (raw.MiMs || raw.Pow || (copied.length&&!mapped)) warnings.push(`${side}[${4-x}] ${row.Name}: ability memory/copied ability needs explicit mapping`);
     }
+    if(board.Pack===4 && pets.some(p=>p?.name==='Harpy Eagle')) warnings.push(`${side}: Harpy Eagle cannot summon from the supplied empty custom deck; browser summon-pool evidence is required`);
     config[`${side}Pets`] = pets;
     const toys = (board.Rel?.Items ?? []).filter(Boolean);
     for (const raw of toys) {

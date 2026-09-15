@@ -113,7 +113,7 @@ The Pandora test uses a clearly labeled synthetic engine oracle with ten pets an
 
 ## Batch capture reliability and performance
 
-Each shared browser session sets **Settings → Customize → Held Food → Static** and verifies the value before replay capture. Perk recognition also checks color and candidate separation; ambiguous food remains unobserved. Readiness detection tolerates a missing AUTOPLAY OCR label when PLAY and REWIND/SKIP identify the paused viewer. Replay navigation waits for the share-code screen without clicking Watch Replay until the new code is entered. Capture failures after login save `failure.png` and `failure.json`, including the injection count.
+Each shared browser session sets and verifies **Settings → Customize → Held Food → Static** and **Ability Card Scale → 35%** before replay capture. The smaller cards keep paused replay controls visible during ability-heavy battles. Perk recognition also checks color and candidate separation; ambiguous food remains unobserved. Readiness detection tolerates a missing AUTOPLAY OCR label when PLAY and REWIND/SKIP identify the paused viewer. Replay navigation waits for the share-code screen without clicking Watch Replay until the new code is entered. Capture failures after login save `failure.png` and `failure.json`, including the injection count.
 
 Unity's omitted pet enum defaults to zero (Ant). Pack 4 currently uses a named, empty custom pack, as requested; this assumption is recorded in normalization metadata and does not supply a replacement summon pool.
 
@@ -122,3 +122,27 @@ An unreadable frame 0 no longer aborts recognition of the rest of the recording.
 Batch runs reuse one sprite worker and glyph templates, initialize the asset index during browser capture, cache unchanged pet crops and decoded assets, and use a coarse template shortlist before detailed scale/rotation matching. Playback controls are read from an enlarged crop, while full screenshots remain the source of board evidence. Paused screenshots are reused for OCR and saved evidence. Each successful pipeline run writes `timings.json` and prints capture, recognition, and diagnosis times. Browser loading, SAP animations, and uncertain visual recognition still take time; these changes do not skip observed ability steps.
 
 Reports embed screenshots inline through relative `evidence/` paths. Keep that folder beside `report.md` when moving or sharing a report.
+
+## September failure fixes
+
+Capture checks the PLAY triangle when OCR omits its label, waits for two paused
+samples with stable stat glyphs, and requires explicit result text before marking
+capture complete. Idle sprites and scenery are excluded from the settling check.
+Versus-mode `GAME WON!` is recognized as a result, with a thresholded crop
+fallback for low-confidence full-color OCR. A successful recapture removes
+stale failure screenshots and error metadata.
+
+Sprite matching rejects geometry centered in an adjacent slot and masks the
+central lower area obscured by mana badges during template fallback. These fix
+the saved Leech/Piranha confusion and Elephant Seal slot-9 ambiguity while keeping
+the existing acceptance thresholds.
+
+Closest-snapshot ranking now penalizes missing pets in proportion to their count.
+Reports also identify a later matching checkpoint when the boards reconverge;
+the original mismatch remains a divergence. Abomination's supported Brain Cramp
+and Drop Bear copied abilities are normalized even when Unity omits `Nat: false`.
+Unknown copied abilities and Harpy Eagle's empty custom summon pool explicitly
+make diagnosis inconclusive.
+
+See [the case-by-case investigation](docs/september-batch-investigation.md) for
+remaining engine differences and verification results.

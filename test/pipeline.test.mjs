@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {normalizeBattle,digest} from '../src/normalize.mjs';
 import {injectionPayload,replacePlaybackBattle} from '../src/inject.mjs';
 import {align,boardDiff} from '../src/align.mjs';
-import {simulate,sourceCandidates} from '../src/engine.mjs';
+import {simulate,sourceCandidates,stabilizeEventSnapshotIdentities,stabilizeEventSnapshotPerks} from '../src/engine.mjs';
 const pet=(Enu,x,extra={})=>({Enu,Poi:{x},At:{Perm:3},Hp:{Perm:4},Lvl:1,...extra});
 const board=items=>({Tur:6,Pack:2,Mins:{Size:{x:5},Items:items},Rel:{Items:[null,null]}});
 const battle=(items=[pet(165,4),pet(145,3)])=>({Id:'222fdc55-d090-4b40-bf7c-8079acee685e',Seed:992223094,UserBoard:board(items),OpponentBoard:board([pet(105,4)])});
@@ -49,9 +49,26 @@ test('identity IDs are ignored, explicitly observed perks are compared, unknown 
  assert.deepEqual(boardDiff(state(),{player:[{...p(),id:'runtime',equipment:'Weak'}],opponent:[]}),[]);
  assert.equal(boardDiff({player:[{...p(),equipment:null}],opponent:[]},{player:[{...p(),equipment:'Weak'}],opponent:[]}).length,1);
 });
+test('copied-ability event snapshots retain the owner identity while genuine transformations persist',()=>{
+ const pet=(name,id='p1')=>({id,name,attack:1,health:1});
+ const event=(sequence,name,message='')=>({sequence,message,board:{player:[pet(name)],opponent:[]},source:pet(name)});
+ const raw=[event(0,'Parrot'),event(1,"Parrot's Boar","Parrot's Boar gained stats"),event(2,'Parrot'),event(3,'Butterfly')];
+ const stable=stabilizeEventSnapshotIdentities(raw);
+ assert.equal(stable[1].board.player[0].name,'Parrot');assert.equal(stable[1].source.name,'Parrot');
+ assert.equal(stable[1].message,"Parrot's Boar gained stats");assert.equal(stable[3].board.player[0].name,'Butterfly');
+ assert.equal(raw[1].board.player[0].name,"Parrot's Boar");
+});
+test('explicit perk-giving events expose their stated post-ability equipment',()=>{
+ const target={id:'boar',name:'Boar',equipment:null};
+ const raw=[{type:'ability',message:'Turtle gave Boar Melon.',target:{...target},board:{player:[{...target}],opponent:[]}}];
+ const stable=stabilizeEventSnapshotPerks(raw);
+ assert.equal(stable[0].target.equipment,'Melon');assert.equal(stable[0].board.player[0].equipment,'Melon');
+ assert.equal(raw[0].target.equipment,null);
+});
 test('real engine random tape reproduces event snapshots; source map attribution resolves file paths',()=>{
  const n=normalizeBattle(battle()),first=simulate(n.config),replayed=simulate({...n.config,randomDrawOverrides:first.result.randomDraws});
  assert.deepEqual(replayed.events,first.events);assert.equal(digest(replayed.events),digest(first.events));
+ assert.strictEqual(first.result.battles[0].logs,first.events);
  assert.ok(sourceCandidates(first.events).some(s=>s.name==='Pug'&&s.file.endsWith('/pug.class.ts')));
 });
 test('dying sprites are evidence but do not count as living pets in either snapshot',()=>{

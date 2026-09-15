@@ -16,6 +16,11 @@ export function boardDiff(observed, expected) {
   }
   return diffs;
 }
+// A missing pet is not merely one differing field. Otherwise an empty terminal
+// board beats a nearly matching full board and looks like a team deletion.
+export function differenceCost(differences) {
+ return differences.reduce((sum,d)=>sum+(d.path.endsWith('.length')?7*Math.abs(d.observed-d.engine):d.path.endsWith('.name')?3:1),0);
+}
 export function validateObservations(reference) {
   if(reference.schemaVersion !== 1 || !Array.isArray(reference.checkpoints) || !reference.checkpoints.length) throw new Error('Reference must contain schemaVersion:1 and nonempty checkpoints');
   if(!reference.inputHash) throw new Error('Reference must identify inputHash');
@@ -54,9 +59,15 @@ export function align(reference, events, {confidence=0.98}={}) {
     if(!candidates.length) {
       const nearby=events.slice(Math.max(0,start-1));
       const ranked=nearby.map((e,j)=>({sequence:e.sequence,index:Math.max(0,start-1)+j,differences:boardDiff(cp.board,e.board)}))
-        .sort((a,b)=>a.differences.length-b.differences.length||a.index-b.index);
+        .sort((a,b)=>differenceCost(a.differences)-differenceCost(b.differences)||a.index-b.index);
+      let rejoin=null;
+      for(let later=index+1;later<reference.checkpoints.length;later++){
+        if(reference.checkpoints[later].confidence<confidence)continue;
+        const event=nearby.find(e=>!boardDiff(reference.checkpoints[later].board,e.board).length);
+        if(event){rejoin={checkpoint:later,frame:reference.checkpoints[later].evidence.frame,eventSequence:event.sequence};break;}
+      }
       return {status:'divergence-candidate',checkpoint:index,lastMatched:matches.at(-1)??null,
-        earliestUnmatchedSequence:events[start]?.sequence??null,closest:ranked.slice(0,3),matches};
+        earliestUnmatchedSequence:events[start]?.sequence??null,closest:ranked.slice(0,3),rejoin,matches};
     }
     frontier=candidates;
     matches.push({checkpoint:index,eventSequences:candidates.map(i=>events[i].sequence)});

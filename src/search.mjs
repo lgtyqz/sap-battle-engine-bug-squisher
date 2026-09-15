@@ -1,5 +1,5 @@
 import { simulate } from './engine.mjs';
-import { align } from './align.mjs';
+import { align, differenceCost } from './align.mjs';
 
 // A winner alone does not establish that the same sequence of abilities occurred.
 export function compareReference(reference, run) {
@@ -51,7 +51,7 @@ export function searchBranches(config,reference,{maxTrials=64}={}) {
   }
   const alignment=compareReference(reference,run);
   const decisions=run.result.randomDecisions??[];
-  const score=alignment.matches.length*1000-(alignment.closest?.[0]?.differences.length??0)+(alignment.outcomeMatch===true?100:0);
+  const score=alignment.matches.length*1000-differenceCost(alignment.closest?.[0]?.differences??[])+(alignment.outcomeMatch===true?100:0);
   trials.push({trial:trials.length,winner:run.winner,alignment,overrides,
    randomDecisions:decisions,randomDraws:run.result.randomDraws});
   if(!best||score>best.score||alignment.targetMatched)best={run,alignment,score,selectedTrial:trials.length-1};

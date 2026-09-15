@@ -39,7 +39,9 @@ export async function observeCapture(normalized,dir,{onProgress=()=>{},worker:sh
     if(!best || (best.method==='template' ? best.error>.18 || (next&&next.error-best.error<.12) : best.inliers<6||best.ratio<.7||(next&&best.inliers-next.inliers<2))){issues.push(`slot ${slot}: ambiguous pet`);continue;}
     const pet={name:best.name,attack:stat.attack.value,health:stat.health.value};
     const [bestPerk,nextPerk]=sprites[slot].perks;
-    const perk=bestPerk&&bestPerk.inliers>=6&&bestPerk.ratio>=.75&&(!nextPerk||bestPerk.inliers-nextPerk.inliers>=2)?bestPerk:null;
+    const perk=bestPerk&&(bestPerk.method==='template'
+     ? bestPerk.error<.18&&(!nextPerk||nextPerk.error-bestPerk.error>=.08)
+     : bestPerk.inliers>=6&&bestPerk.ratio>=.75&&(!nextPerk||bestPerk.inliers-nextPerk.inliers>=2))?bestPerk:null;
     // No feature match does not prove absence of a small/occluded perk. Leave it unobserved.
     if(perk)pet.equipment=perk.name;
     board[slot<5?'player':'opponent'].push(pet);

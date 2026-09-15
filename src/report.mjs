@@ -25,6 +25,7 @@ export async function diagnose(normalized, reference, outDir, {maxTrials=64}={})
   if(normalized.warnings.length || reference?.initialVerified===false) report.status='inconclusive';
   if(reference?.initialVerified===false)report.caveats.push('Initial board could not be verified visually. Later browser observations are retained, but missing initial evidence prevents a conclusive diagnosis.');
   if(alignment.status==='divergence-candidate') report.caveats.push('Resolve random target/order differences before treating this candidate as an engine bug.');
+  if(alignment.rejoin)report.caveats.push(`The boards match again at checkpoint ${alignment.rejoin.checkpoint} (${alignment.rejoin.frame}), engine event ${alignment.rejoin.eventSequence}. Inspect effect ordering or intermediate snapshots; this later match does not excuse the earlier divergence.`);
   const fixture={schemaVersion:1,status:reference?'candidate':'awaiting-browser-observations',
     metadata:normalized.metadata,engine:run.revision,
     config:{...run.config,randomDrawOverrides:run.result.randomDraws},
