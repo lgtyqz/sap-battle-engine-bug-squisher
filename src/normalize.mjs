@@ -68,6 +68,17 @@ export function normalizeBattle(battle, {replayId = null} = {}) {
         pets[4-x].benchmark=true;
         pets[4-x].plainCopy=true;
       }
+      // Beluga stores the shop pet it swallowed in its minion-memory list.
+      // The battle engine reconstructs that pet from its catalog name and the
+      // Beluga's ability level, so the stored base stats are not config fields.
+      const belugaMemory=raw.MiMs?.Lsts?.WhiteWhaleAbility;
+      const mappedBelugaMemory=row.Name==='Beluga Whale' && raw.MiMs?.Count===1 &&
+        Object.keys(raw.MiMs?.Lsts??{}).length===1 && Array.isArray(belugaMemory) && belugaMemory.length===1 &&
+        belugaMemory[0] && Number.isFinite(belugaMemory[0].Enu) && Number.isFinite(belugaMemory[0].At) &&
+        Number.isFinite(belugaMemory[0].Hp) && [1,2,3].includes(belugaMemory[0].Lvl??1);
+      if(mappedBelugaMemory){
+        pets[4-x].belugaSwallowedPet=lookup('pets',belugaMemory[0].Enu,`${side}[${x}].MiMs.Lsts.WhiteWhaleAbility[0].Enu`).Name;
+      }
       identities[side][4-x] = {enum:raw.Enu??0,name:row.Name,nameId:row.NameId,sapId:raw.Id ?? null,abilities:raw.Abil ?? []};
       const copied=(raw.Abil??[]).filter(a=>a.Nat!==true); // Unity omits false Nat.
       const mapped=row.Name==='Abomination' && copied.length<=level && copied.every(a=>copiedAbilityPets[a.Enu] && !a.TrCo && [1,2,3].includes(a.Lvl??1));
@@ -76,7 +87,7 @@ export function normalizeBattle(battle, {replayId = null} = {}) {
         pets[4-x][`abominationSwallowedPet${i+1}Level`]=a.Lvl??1;
       });
       const unmappedPower=raw.Pow&&(!battlesFoughtKey||Object.keys(raw.Pow).some(key=>key!==battlesFoughtKey));
-      if (raw.MiMs || unmappedPower || (copied.length&&!mapped)) warnings.push(`${side}[${4-x}] ${row.Name}: ability memory/copied ability needs explicit mapping`);
+      if ((raw.MiMs&&!mappedBelugaMemory) || unmappedPower || (copied.length&&!mapped)) warnings.push(`${side}[${4-x}] ${row.Name}: ability memory/copied ability needs explicit mapping`);
     }
     if(board.Pack===4 && pets.some(p=>p?.name==='Harpy Eagle')) warnings.push(`${side}: Harpy Eagle cannot summon from the supplied empty custom deck; browser summon-pool evidence is required`);
     config[`${side}Pets`] = pets;

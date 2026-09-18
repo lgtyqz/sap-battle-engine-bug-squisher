@@ -60,6 +60,25 @@ test('Abomination preserves omitted-Nat Brain Cramp and Drop Bear memories from 
  assert.ok(normalizeBattle(battle).warnings.some(w=>/copied ability/.test(w)));
 });
 
+test('Beluga Whale maps its swallowed pet memory and summons it at its ability level',()=>{
+ const board=(pack,items)=>({Tur:18,Pack:pack,Mins:{Size:{x:5},Items:items}});
+ const beluga={Enu:182,Poi:{x:4},Exp:2,Lvl:2,At:{Perm:12},Hp:{Perm:11},Perk:30,
+  MiMs:{Lsts:{WhiteWhaleAbility:[{Enu:266,At:9,Hp:6,Lvl:1}]},Count:1}};
+ const ant={Enu:0,Poi:{x:4},At:{Perm:50},Hp:{Perm:50}};
+ const battle={UserBoard:board(0,[ant]),OpponentBoard:board(5,[beluga])};
+ const n=normalizeBattle(battle);
+ assert.equal(n.config.opponentPets[0].belugaSwallowedPet,'Warthog');
+ assert.deepEqual(n.warnings,[]);
+ const run=simulate(n.config);
+ assert.ok(run.events.some(event=>event.message==='Beluga Whale spawned Warthog Level 3'));
+ assert.ok(run.events.some(event=>event.board?.opponent?.some(p=>p?.name==='Warthog'&&p.attack===27&&p.health===18)));
+
+ battle.OpponentBoard.Mins.Items[0].MiMs.Count=2;
+ const malformed=normalizeBattle(battle);
+ assert.equal(malformed.config.opponentPets[0].belugaSwallowedPet,undefined);
+ assert.ok(malformed.warnings.some(w=>/Beluga Whale: ability memory/.test(w)));
+});
+
 test('Harpy Eagle with an empty custom deck flags the missing summon pool',async()=>{
  const board=items=>({Tur:17,Pack:4,Mins:{Size:{x:5},Items:items}});
  const harpy={Enu:552,Poi:{x:4},Lvl:1,At:{Perm:6},Hp:{Perm:6}};
