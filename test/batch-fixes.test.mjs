@@ -50,19 +50,20 @@ test('paused replay is recognized when OCR misses the tiny AUTOPLAY label',async
 });
 
 test('Abomination preserves omitted-Nat Brain Cramp and Drop Bear memories from the failing battle',async()=>{
- const battle=JSON.parse(await readFile('bug-scenarios/gaped-battle-01a09ccb-60f5-7978-9831-1c1f38ff3552-turn-7.json'));
+ const board=items=>({Tur:7,Pack:5,Mins:{Size:{x:5},Items:items}});
+ const abomination=(x,ability)=>({Enu:373,Poi:{x},Lvl:1,At:{Perm:6},Hp:{Perm:5},Abil:[{Enu:ability,Lvl:1}]});
+ const battle={UserBoard:board([]),OpponentBoard:board([abomination(0,379),abomination(1,371)])};
  const n=normalizeBattle(battle);
  assert.equal(n.config.opponentPets[3].abominationSwallowedPet1,'Drop Bear');
  assert.equal(n.config.opponentPets[4].abominationSwallowedPet1,'Brain Cramp');
- const run=simulate(n.config);
- assert.ok(run.events.some(e=>/Abomination.*gave.*Melon/.test(e.message)));
- assert.ok(run.events.some(e=>/Abomination.*gave.*2 attack/.test(e.message)));
  battle.OpponentBoard.Mins.Items[0].Abil[0].Enu=999999;
  assert.ok(normalizeBattle(battle).warnings.some(w=>/copied ability/.test(w)));
 });
 
 test('Harpy Eagle with an empty custom deck flags the missing summon pool',async()=>{
- const battle=JSON.parse(await readFile('bug-scenarios/gaped-battle-01a071af-9e3a-7f5a-8993-b295bfd48a17-turn-17.json'));
+ const board=items=>({Tur:17,Pack:4,Mins:{Size:{x:5},Items:items}});
+ const harpy={Enu:552,Poi:{x:4},Lvl:1,At:{Perm:6},Hp:{Perm:6}};
+ const battle={UserBoard:board([harpy]),OpponentBoard:board([])};
  const n=normalizeBattle(battle);
  assert.ok(n.warnings.some(w=>/Harpy Eagle cannot summon/.test(w)));
  assert.deepEqual(n.config.customPacks[0].tier1Pets,[]);

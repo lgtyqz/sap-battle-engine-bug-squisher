@@ -12,18 +12,16 @@ function boardTable(browser,engine) {
 }
 export function checkpointHistory(reference,alignment,events) {
  if(!reference)return [];
- const end=alignment.checkpoint??reference.checkpoints.length-1;
- return reference.checkpoints.slice(0,end+1).map((cp,index)=>{
+ return reference.checkpoints.map((cp,index)=>{
   const match=alignment.matches?.find(m=>m.checkpoint===index);
-  const sequences=match?.eventSequences??(index===alignment.checkpoint?alignment.closest?.map(c=>c.sequence):[])??[];
-  return {index,status:match?'matched':alignment.status==='divergence-candidate'?'unmatched':'inconclusive',
+  const sequences=match?.eventSequences??(index===alignment.checkpoint?alignment.closest?.map(c=>c.sequence):index===alignment.rejoin?.checkpoint?[alignment.rejoin.eventSequence]:[])??[];
+  return {index,status:match?'matched':index===alignment.rejoin?.checkpoint?'rejoined':index>alignment.checkpoint?'not-aligned':alignment.status==='divergence-candidate'?'unmatched':'inconclusive',
    timeMs:cp.timeMs,frame:resolve(reference.source??'.',cp.evidence.frame),board:cp.board,
    phase:cp.phase??null,kinds:cp.kinds??[],upcomingAbility:cp.upcomingAbility??null,dying:cp.dying??[],
    engineCandidates:sequences.map(sequence=>events.find(e=>e.sequence===sequence)).filter(Boolean)};
  });
 }
 export function renderCheckpointHistory(history,context,gaps=[],source='.',images=new Map()) {
- if(!history.length)return '';
  const render=cp=>{
   const candidates=cp.engineCandidates;
   let text=`### Checkpoint ${cp.index} — ${cp.status}\n\n${images.has(cp.frame)?`![Browser checkpoint ${cp.index}](${images.get(cp.frame)})`:'Screenshot unavailable'} · ${cp.timeMs} ms · visible changes: ${cell(cp.kinds.join(', ')||'not classified')}.\n\n`;
@@ -36,12 +34,15 @@ export function renderCheckpointHistory(history,context,gaps=[],source='.',image
   if(cp.dying.length)text+=`Dying sprites retained as evidence: ${cell(JSON.stringify(cp.dying))}.\n\n`;
   return text;
  };
- const current=history.at(-1);
+ const current=history.find(cp=>cp.status==='unmatched')??history.at(-1);
  let text='## Checkpoint comparison\n\nCheckpoint numbers are zero-based accepted observations, not screenshot numbers. Positions are living pets from front to back; stats are attack/health. Unknown fields were not observed and do not count as differences. Engine candidates are emission-time snapshots, not guaranteed post-ability states. Multiple candidates preserve alignment ambiguity; the first is shown expanded.\n\n';
- text+='## Current checkpoint\n\n'+render(current);
- text+='## Previous checkpoints\n\n'+(history.length>1?history.slice(0,-1).map(render).join('\n'):'No preceding accepted checkpoints.\n\n');
- if(context.length)text+='## Engine events around the divergence\n\nThe browser column repeats the current checkpoint as a fixed comparison target. These earlier engine events are context, not additional claimed mismatches.\n\n'+context.map(e=>`### Event ${e.sequence}: ${cell(e.message)}\n\n${boardTable(current.board,e.board)}\n\n`).join('');
- const priorGaps=gaps.filter(g=>g.timeMs<=current.timeMs);
- if(priorGaps.length)text+='## Unreadable browser frames before this checkpoint\n\n'+priorGaps.map(g=>`- ${images.has(resolve(source,g.frame))?`![${cell(g.frame)}](${images.get(resolve(source,g.frame))})`:cell(g.frame)} at ${g.timeMs} ms: ${cell(JSON.stringify(g.issues??g.reason??'Recognition gap; inspect observations.json'))}`).join('\n')+'\n';
+ text+='## All browser checkpoints\n\nLater observations marked not-aligned were retained after prefix alignment stopped; they are not additional claimed mismatches.\n\n'+(history.map(render).join('\n')||'No accepted browser checkpoints.\n\n');
+ if(current&&context.length)text+='## Engine events around the divergence\n\nThe browser column repeats the current checkpoint as a fixed comparison target. These earlier engine events are context, not additional claimed mismatches.\n\n'+context.map(e=>`### Event ${e.sequence}: ${cell(e.message)}\n\n${boardTable(current.board,e.board)}\n\n`).join('');
+ const priorGaps=gaps;
+ if(priorGaps.length)text+='## All unreadable browser frames\n\n'+priorGaps.map(g=>`- ${images.has(resolve(source,g.frame))?`![${cell(g.frame)}](${images.get(resolve(source,g.frame))})`:cell(g.frame)} at ${g.timeMs} ms: ${cell(JSON.stringify(g.issues??g.reason??'Recognition gap; inspect observations.json'))}`).join('\n')+'\n';
  return text;
+}
+
+export function renderEngineHistory(events,images=new Map()) {
+ return '## All engine checkpoints\n\nEvery event from the selected engine trial, in emission order, including events after the first divergence. Boards may precede the described mutation. Fainted pets remain visible in these snapshots.\n\n'+events.map(e=>`### Engine checkpoint ${e.sequence} — ${cell(e.type)}\n\n${cell(e.message)}\n\n${images.has(e.sequence)?`![Engine checkpoint ${e.sequence}](${images.get(e.sequence)})`:'Visualization unavailable'}\n\n| Side / snapshot position | Pet |\n| --- | --- |\n${['player','opponent'].flatMap(side=>(e.board?.[side]??[]).map((pet,i)=>`| ${side} ${i+1} | ${petText(pet)} |`)).join('\n')}\n\n<details>\n<summary>Full event data</summary>\n\n<pre>${JSON.stringify(e,null,2).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}</pre>\n\n</details>\n\n`).join('');
 }

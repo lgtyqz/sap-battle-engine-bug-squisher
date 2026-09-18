@@ -198,26 +198,29 @@ export function replayControls(rows) {
   visible:['PLAY','PAUSE','REWIND','AUTOPLAY','SKIP','FAST'].some(t=>labels.has(t))};
 }
 /** Record stable pauses, including pre-ability tooltips, with screenshots as independent evidence. */
-export async function captureSteps(page,outDir,{maxSteps=100,onProgress=()=>{}}={}) {
+export async function captureSteps(page,outDir,{maxSteps=100,onProgress=()=>{},io={}}={}) {
+ const readScreen=io.screenText??screenText,readText=io.recognizeText??recognizeText,readOutcome=io.outcomeFromImage??outcomeFromImage;
  await mkdir(`${outDir}/frames`,{recursive:true});
  const frames=[],start=Date.now();
  await page.mouse.move(1250,780);
- let complete=false,outcome=null;
+ let complete=false,outcome=null,terminalFrame=null;
+ const errors=[];
+ try{
  for(let step=0;step<maxSteps;step++){
   // Play is present only when paused. Do not click again while a previous animation is still running.
   const until=Date.now()+15000;
   let rows=[],stable=false;
   while(Date.now()<until){
-   rows=await screenText(page,{controlsOnly:true});
+   rows=await readScreen(page,{controlsOnly:true});
    if(replayControls(rows).paused){
     // PLAY may return before movement/stat animations have finished. Require a
     // quiet board interval, and save the final image that passed this check.
     await copyFile(resolve('.scratch/ui.png'),resolve('.scratch/settling.png'));
     await page.waitForTimeout(350);
-    rows=await screenText(page,{controlsOnly:true});
+    rows=await readScreen(page,{controlsOnly:true});
     if(replayControls(rows).paused && await boardMotion(resolve('.scratch/settling.png'),resolve('.scratch/ui.png'))<.005){stable=true;break;}
    }else if(!replayControls(rows).visible){
-    const result=await outcomeFromImage(resolve('.scratch/ui.png'),'terminal.png');
+    const result=await readOutcome(resolve('.scratch/ui.png'),'terminal.png');
     if(result)break;
    }
    await page.waitForTimeout(200);
@@ -226,7 +229,8 @@ export async function captureSteps(page,outDir,{maxSteps=100,onProgress=()=>{}}=
    // Viewer exit is evidence of capture ending, not proof that every internal effect was visible.
    await page.waitForTimeout(1500);
    const terminal='terminal.png';await (await canvasOf(page)).screenshot({path:`${outDir}/${terminal}`});
-   outcome=await outcomeFromImage(`${outDir}/${terminal}`,terminal);
+   terminalFrame=terminal;
+   outcome=await readOutcome(`${outDir}/${terminal}`,terminal);
    complete=frames.length>1 && outcome!==null;
    if(!complete)throw new Error('Lost the paused battle controls; capture is incomplete');
    break;
@@ -234,13 +238,21 @@ export async function captureSteps(page,outDir,{maxSteps=100,onProgress=()=>{}}=
   await page.mouse.move(1250,780);
   const frame=`frames/${String(step).padStart(4,'0')}.png`;
   await copyFile(resolve('.scratch/ui.png'),`${outDir}/${frame}`); // Same pixels used for pause detection and tooltip OCR.
-  frames.push({frame,timeMs:Date.now()-start,text:[...rows,...await recognizeText(`${outDir}/${frame}`)]});
+  const captured={frame,timeMs:Date.now()-start,text:rows};
+  frames.push(captured);
+  captured.text=[...rows,...await readText(`${outDir}/${frame}`)];
   await writeFile(`${outDir}/capture.json`,JSON.stringify({schemaVersion:1,complete:false,frames},null,2));
   onProgress(`Captured checkpoint ${step}`);
   await canvasClick(page,.439,.06);
   await page.waitForTimeout(600);
  }
- const manifest={schemaVersion:1,complete,outcome,frames,coverage:'viewer-pauses',
+ }catch(error){
+  if(!frames.length)throw error;
+  complete=false;
+  errors.push({stage:'checkpoint-capture',message:error.message});
+  onProgress(`Capture incomplete; retaining ${frames.length} frames: ${error.message}`);
+ }
+ const manifest={schemaVersion:1,complete,outcome,terminalFrame,frames,errors,coverage:'viewer-pauses',
   limitation:'A viewer pause can combine simultaneous attacks or multiple mutations; it is not an internal SAP event trace.'};
  await writeFile(`${outDir}/capture.json`,JSON.stringify(manifest,null,2));
  return manifest;
@@ -276,7 +288,14 @@ export async function captureBattle(battle,normalized,outDir,options={}) {
   capture.provenance=capture.injectionCount?'battle-response-override':'participation-replay-needs-input-verification';
   await writeFile(`${outDir}/capture.json`,JSON.stringify(capture,null,2));
   for(const name of ['failure.json','failure.png'])await unlink(`${outDir}/${name}`).catch(error=>{if(error.code!=='ENOENT')throw error;});
-  if(!ownsSession)await returnToMainMenu(session.page);
+  if(!ownsSession){
+   try{await returnToMainMenu(session.page);}
+   catch(error){
+    capture.errors??=[];capture.errors.push({stage:'return-to-menu',message:error.message});
+    await writeFile(`${outDir}/capture.json`,JSON.stringify(capture,null,2));
+    options.onProgress?.(`Report evidence retained; returning to menu failed: ${error.message}`);
+   }
+  }
   return capture;
  }catch(error){
   await mkdir(outDir,{recursive:true});
@@ -287,6 +306,6 @@ export async function captureBattle(battle,normalized,outDir,options={}) {
   throw error;
  }finally{
   await Promise.allSettled([injection?.dispose(),playback?.dispose()]);
-  if(ownsSession)await session.browser.close();
+  if(ownsSession)await session.browser.close().catch(error=>options.onProgress?.(`Browser cleanup failed: ${error.message}`));
  }
 }

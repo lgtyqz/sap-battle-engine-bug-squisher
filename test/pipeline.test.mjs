@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {normalizeBattle,digest} from '../src/normalize.mjs';
 import {injectionPayload,replacePlaybackBattle} from '../src/inject.mjs';
 import {align,boardDiff} from '../src/align.mjs';
-import {simulate,sourceCandidates,stabilizeEventSnapshotIdentities,stabilizeEventSnapshotPerks} from '../src/engine.mjs';
+import {simulate,sourceCandidates,stabilizeEventSnapshotIdentities,stabilizeEventSnapshotPerks,restorePlainCopyIdentities,addProvenPostMutationSnapshots} from '../src/engine.mjs';
 const pet=(Enu,x,extra={})=>({Enu,Poi:{x},At:{Perm:3},Hp:{Perm:4},Lvl:1,...extra});
 const board=items=>({Tur:6,Pack:2,Mins:{Size:{x:5},Items:items},Rel:{Items:[null,null]}});
 const battle=(items=[pet(165,4),pet(145,3)])=>({Id:'222fdc55-d090-4b40-bf7c-8079acee685e',Seed:992223094,UserBoard:board(items),OpponentBoard:board([pet(105,4)])});
@@ -16,6 +16,24 @@ test('normalization uses coordinates, reverses sides, preserves temp stats, exp 
  const raw=battle([pet(165,4,{At:{Perm:3,Temp:2},Lvl:2,Abil:[{TrCo:1,AcCo:9}]}),pet(145,0)]),original=structuredClone(raw);
  const n=normalizeBattle(raw);assert.equal(n.config.playerPets[0].name,'Leech');assert.equal(n.config.playerPets[0].attack,5);
  assert.equal(n.config.playerPets[0].exp,2);assert.equal(n.config.playerPets[0].triggersConsumed,1);assert.equal(n.config.playerPets[4].name,'Pug');assert.deepEqual(raw,original);
+});
+test('Slime and Eagle Owl power counters become battles fought without an unsupported-memory warning',()=>{
+ const raw=battle([
+  pet(375,4,{Pow:{SlimeAbility:4}}),
+  pet(781,3,{Pow:{EagleOwlAbility:1}}),
+ ]);
+ const n=normalizeBattle(raw);
+ assert.equal(n.config.playerPets[0].battlesFought,4);
+ assert.equal(n.config.playerPets[1].battlesFought,1);
+ assert.deepEqual(n.warnings,[]);
+});
+test('ability-disabled shop copies use an ability-less engine pet and retain their visible identity',()=>{
+ const raw=battle([pet(803,4,{Abil:[],AbDi:true,At:{Perm:2},Hp:{Perm:2}})]);
+ const n=normalizeBattle(raw),configured=n.config.playerPets[0];
+ assert.equal(configured.name,'Shima Enaga');assert.equal(configured.benchmark,true);assert.equal(configured.plainCopy,true);
+ const run=simulate(n.config);
+ assert.equal(run.events[0].board.player[0].name,'Shima Enaga');
+ assert.ok(!run.events.some(event=>/Shima Enaga summoned/.test(event.message)));
 });
 test('omitted Poi is the Unity zero default; rejects duplicate slots and unknown catalogs',()=>{
  const raw=battle([pet(145,0,{Poi:undefined})]);assert.equal(normalizeBattle(raw).config.playerPets[4].name,'Pug');
@@ -57,6 +75,42 @@ test('copied-ability event snapshots retain the owner identity while genuine tra
  assert.equal(stable[1].board.player[0].name,'Parrot');assert.equal(stable[1].source.name,'Parrot');
  assert.equal(stable[1].message,"Parrot's Boar gained stats");assert.equal(stable[3].board.player[0].name,'Butterfly');
  assert.equal(raw[1].board.player[0].name,"Parrot's Boar");
+});
+test('plain-copy identity restoration follows engine ids after pets move',()=>{
+ const config={playerPets:[{name:'Shima Enaga',plainCopy:true}],opponentPets:[]};
+ const events=[{message:'Benchmark Pet attacks Ant.',board:{player:[{id:'copy',name:'Benchmark Pet'}],opponent:[]},source:{id:'copy',name:'Benchmark Pet'}},
+  {message:'',board:{player:[{id:'other',name:'Ant'},{id:'copy',name:'Benchmark Pet'}],opponent:[]}}];
+ const restored=restorePlainCopyIdentities(events,config);
+ assert.equal(restored[0].board.player[0].name,'Shima Enaga');assert.equal(restored[0].source.name,'Shima Enaga');
+ assert.equal(restored[0].message,'Shima Enaga (plain copy) attacks Ant.');assert.equal(restored[1].board.player[1].name,'Shima Enaga');
+});
+test('a proven post-mutation snapshot isolates a logged buff from the following ability',()=>{
+ const pet=(id,name,attack,health)=>({id,name,attack,health});
+ const first={sequence:14,type:'ability',message:'Ant gave Snail 2 attack and 2 health.',target:pet('snail','Snail',3,9),
+  board:{player:[pet('ox','Ox',4,8),pet('snail','Snail',3,9)],opponent:[]}};
+ const second={sequence:15,type:'ability',message:'Ox gave Ox +1 attack.',target:pet('ox','Ox',5,8),
+  board:{player:[pet('ox','Ox',5,8),pet('snail','Snail',5,11)],opponent:[]}};
+ const expanded=addProvenPostMutationSnapshots([first,second]);
+ assert.equal(expanded.length,3);assert.equal(expanded[1].sequence,14.5);
+ assert.equal(expanded[1].synthetic,'proven-post-mutation');
+ assert.deepEqual(expanded[1].board.player.map(p=>[p.attack,p.health]),[[4,8],[5,11]]);
+ assert.equal(first.board.player[1].attack,3);
+});
+test('post-mutation snapshots require the next board to prove the exact logged delta',()=>{
+ const target={id:'snail',name:'Snail',attack:7,health:6};
+ const first={sequence:10,type:'ability',message:'Ibex removed 4 health from Snail (70%)',target,
+  board:{player:[target],opponent:[]}};
+ const next={sequence:11,type:'ability',message:'Toad gave Snail Weak.',board:{player:[{...target,health:1}],opponent:[]}};
+ assert.equal(addProvenPostMutationSnapshots([first,next]).length,2);
+});
+test('a unique equipment-stat delta proves a missing target field',()=>{
+ const before={sequence:4,type:'equipment',message:'Pheasant (Strawberry) gave Shima Enaga +1 attack and +1 health.',
+  board:{player:[],opponent:[{id:'natural',name:'Shima Enaga',attack:6,health:7},{id:'copy',name:'Shima Enaga',attack:2,health:2}]}};
+ const after={sequence:5,type:'ability',message:'Shima Enaga summoned a friend',board:{player:[],opponent:[
+  {id:'summon',name:'Shima Enaga',attack:2,health:2},{id:'natural',name:'Shima Enaga',attack:6,health:7},{id:'copy',name:'Shima Enaga',attack:3,health:3}]}};
+ const expanded=addProvenPostMutationSnapshots([before,after]);
+ assert.equal(expanded.length,3);assert.deepEqual(expanded[1].board.opponent.map(p=>[p.id,p.attack,p.health]),[
+  ['natural',6,7],['copy',3,3]]);
 });
 test('explicit perk-giving events expose their stated post-ability equipment',()=>{
  const target={id:'boar',name:'Boar',equipment:null};

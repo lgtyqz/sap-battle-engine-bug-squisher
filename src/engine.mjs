@@ -31,6 +31,63 @@ export function stabilizeEventSnapshotIdentities(events) {
     return event;
   });
 }
+export function restorePlainCopyIdentities(events,config) {
+  const aliases=new Map(),first=events.find(event=>event.board);
+  if(!first)return structuredClone(events);
+  for(const side of ['player','opponent']){
+    const configured=(config[`${side}Pets`]??[]).filter(Boolean);
+    const snapshot=(first.board[side]??[]).filter(Boolean);
+    for(let i=0;i<Math.min(configured.length,snapshot.length);i++){
+      if(configured[i].plainCopy&&snapshot[i]?.id)aliases.set(snapshot[i].id,configured[i].name);
+    }
+  }
+  return structuredClone(events).map(event=>{
+    const rename=pet=>{const name=pet?.id&&aliases.get(pet.id);if(name)pet.name=name;};
+    for(const side of ['player','opponent'])for(const pet of event.board?.[side]??[])rename(pet);
+    for(const key of ['source','target'])rename(event[key]);
+    const names=[...new Set(aliases.values())],label=names.length===1?`${names[0]} (plain copy)`:'plain copy';
+    if(aliases.size&&typeof event.message==='string')event.message=event.message.replaceAll('Benchmark Pet',label);
+    return event;
+  });
+}
+const findSnapshotPet=(board,id)=>{
+  for(const side of ['player','opponent']){
+    const index=board?.[side]?.findIndex(p=>p?.id===id)??-1;
+    if(index>=0)return {side,index,pet:board[side][index]};
+  }
+  return null;
+};
+/**
+ * Some engine abilities log immediately before changing their target. If the
+ * next event proves the exact delta named by that log, retain the otherwise
+ * missing intermediate board without borrowing any unrelated next-event
+ * changes. This is intentionally narrower than treating every next board as
+ * the previous event's post-state.
+ */
+export function addProvenPostMutationSnapshots(events) {
+  const expanded=[];
+  for(let i=0;i<events.length;i++){
+    const event=structuredClone(events[i]);
+    expanded.push(event);
+    if(!['ability','equipment'].includes(event.type)||!events[i+1]?.board)continue;
+    const match=event.message.match(/\bgave .+? \+?(\d+) attack and \+?(\d+) health\b/i);
+    if(!match)continue;
+    const ids=event.target?.id?[event.target.id]:['player','opponent'].flatMap(side=>(event.board?.[side]??[]).filter(Boolean).map(p=>p.id));
+    const proven=ids.map(id=>[findSnapshotPet(event.board,id),findSnapshotPet(events[i+1].board,id)])
+      .filter(([current,next])=>current&&next&&next.pet.attack===current.pet.attack+Number(match[1])&&next.pet.health===current.pet.health+Number(match[2]));
+    // Equipment effects do not always populate targetPet. In that case an
+    // exact, unique board delta still independently identifies the target.
+    if(proven.length!==1)continue;
+    const [current,next]=proven[0],attack=next.pet.attack,health=next.pet.health;
+    const post=structuredClone(event),pet=post.board[current.side][current.index];
+    pet.attack=attack;pet.health=health;
+    if(post.target?.id===pet.id){post.target.attack=attack;post.target.health=health;}
+    post.sequence=Number.isFinite(event.sequence)?event.sequence+.5:event.sequence;
+    post.synthetic='proven-post-mutation';
+    expanded.push(post);
+  }
+  return expanded;
+}
 export function stabilizeEventSnapshotPerks(events) {
   return structuredClone(events).map(event=>{
     if(event.type!=='ability'||!event.target?.id)return event;
@@ -50,7 +107,8 @@ export function simulate(config) {
   if (result.randomOverrideError) throw new Error(result.randomOverrideError);
   const battle = result.battles?.[0];
   if (!battle?.logs?.length) throw new Error('Engine returned no structured BattleEvents');
-  const events=stabilizeEventSnapshotPerks(stabilizeEventSnapshotIdentities(battle.logs));
+  const events=stabilizeEventSnapshotPerks(stabilizeEventSnapshotIdentities(
+    restorePlainCopyIdentities(addProvenPostMutationSnapshots(battle.logs),input)));
   battle.logs=events;
   return {config:input,result,events,winner:battle.winner,revision:engineRevision()};
 }

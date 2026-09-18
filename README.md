@@ -58,10 +58,16 @@ npm test
 | `observations.json` | Accepted front-to-back boards, visible-change tags, and unreadable-frame gaps |
 | `random-trials.json` | Every attempted branch, its winner, alignment, decision options/selected choices, overrides, and random tape |
 | `engine.json` | Structured BattleEvents, engine revision, random choices, and random-draw tape for the selected trial |
-| `report.json`, `report.md` | Full browser/engine boards for the current and preceding accepted checkpoints, screenshot links, alternative alignments, intervening events, differences, and implicated source files |
+| `report.json`, `report.md` | All accepted browser checkpoints and every event from the selected engine trial, including those after divergence; sprite visualizations, full engine event data, screenshot links, alternative alignments, intervening events, differences, and implicated source files |
 | `regression.fixture.json` | Config, captured RNG tape, and browser reference for engine regression work |
 
 Initial board verification is recorded separately. If the initial frame is unreadable or no readable board matches the input, later independent observations are retained and the diagnosis is marked inconclusive. Unknown enums, unsupported packs, duplicate slots, and inconsistent levels fail normalization. Temporary stats are included; slots are reversed from SAP coordinates to engine order. Ability activation counts (`AcCo`) are not confused with consumed triggers (`TrCo`). Complex copied/swallowed ability memory is currently flagged for explicit mapping.
+
+Slime and Eagle Owl persist their ability strength in `Pow.SlimeAbility` and
+`Pow.EagleOwlAbility`; normalization maps those counters to the engine's
+`battlesFought` field. Shop-created plain copies are identified by `AbDi: true`
+plus an empty `Abil` array and simulated without a native ability while their
+visible pet identity is retained in engine snapshots.
 
 ## Replay injection
 
@@ -85,6 +91,7 @@ Source-map attribution identifies pets/perks mentioned by nearby events and retu
 
 - Recognition is calibrated to the tested 1280×720 browser canvas and current UI layout. A new game build, UI scale, font, or sprite set can require recalibration.
 - The viewer can group simultaneous attacks, hurt/faint effects, summons, and transformations. Captured pauses are observable checkpoints, **not a complete internal SAP event stream**.
+- When an ability/equipment log precedes its mutation, the adapter adds a post-mutation snapshot only if the next emitted board proves the exact stated attack/health delta on one target. This exposes browser-visible intermediate states such as the Ox and Strawberry cases without treating every later board as a speculative post-state.
 - Low-feature pets fall back to masked template matching. Hats, death markers, effects, or overlapping sprites can still make a frame unreadable. Such frames remain explicit gaps; they are never filled from the engine's predictions.
 - Positive perk matches are recorded. Lack of a match does not prove perk absence. Exact XP, mana, perk uses, and internal identities are not currently read automatically. Change tags describe visible differences; they are not a fully classified SAP ability trace.
 - Automation stops on unrecognized screens, login failure, or missing replay/injection data. It does not invent a successful capture. Capture/OCR currently requires macOS; normalization and engine comparison are ordinary Node modules.
@@ -121,7 +128,7 @@ An unreadable frame 0 no longer aborts recognition of the rest of the recording.
 
 Batch runs reuse one sprite worker and glyph templates, initialize the asset index during browser capture, cache unchanged pet crops and decoded assets, and use a coarse template shortlist before detailed scale/rotation matching. Playback controls are read from an enlarged crop, while full screenshots remain the source of board evidence. Paused screenshots are reused for OCR and saved evidence. Each successful pipeline run writes `timings.json` and prints capture, recognition, and diagnosis times. Browser loading, SAP animations, and uncertain visual recognition still take time; these changes do not skip observed ability steps.
 
-Reports embed screenshots inline through relative `evidence/` paths. Keep that folder beside `report.md` when moving or sharing a report.
+Reports embed browser screenshots and engine board PNGs inline through relative `evidence/` paths. Browser capture failures after a saved checkpoint retain the partial capture and continue diagnosis; capture errors and incomplete coverage are recorded in the report. Setup failures before any saved checkpoint still fail the run. Keep that folder beside `report.md` when moving or sharing a report.
 
 ## September failure fixes
 

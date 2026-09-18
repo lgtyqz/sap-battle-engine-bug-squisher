@@ -1,0 +1,965 @@
+{
+  "Id": "bcbb77f8-e5a8-4695-88f8-b80b7952413a",
+  "Seed": 1396214368,
+  "Outcome": 1,
+  "ResolvedOn": "2026-09-17T14:56:29.76235+00:00",
+  "User": {
+    "Id": "f503a20c-58d4-4741-82c3-4e4ac62f2323",
+    "DisplayName": "phestu"
+  },
+  "UserBoard": {
+    "Id": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+    "UNC": 279,
+    "Sta": 4,
+    "LiMa": 6,
+    "Los": 6,
+    "LPM": 4,
+    "LoPs": 5,
+    "Vic": 5,
+    "Rec": 1,
+    "Tur": 15,
+    "GoGa": 1,
+    "GoSp": 11,
+    "Rold": 2,
+    "Ti": 6,
+    "BoCa": 99,
+    "Mins": {
+      "Size": {
+        "x": 5,
+        "y": 1
+      },
+      "Items": [
+        {
+          "Own": 1,
+          "Enu": 77,
+          "Loc": 1,
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 4
+          },
+          "At": {
+            "Perm": 6
+          },
+          "Abil": [
+            {
+              "Enu": 85,
+              "Lvl": 1,
+              "Nat": true
+            }
+          ],
+          "Cosm": 6,
+          "Rwrd": true,
+          "Id": {
+            "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+            "Uni": 272
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 269,
+          "Loc": 1,
+          "Poi": {
+            "x": 1
+          },
+          "Exp": 2,
+          "Lvl": 2,
+          "Hp": {
+            "Perm": 18
+          },
+          "At": {
+            "Perm": 14
+          },
+          "Perk": 1,
+          "Abil": [
+            {
+              "Enu": 294,
+              "Lvl": 2,
+              "Nat": true
+            }
+          ],
+          "Cosm": 6,
+          "Rwrd": true,
+          "Id": {
+            "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+            "Uni": 138
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 20,
+          "Loc": 1,
+          "Poi": {
+            "x": 2
+          },
+          "Exp": 2,
+          "Lvl": 2,
+          "Hp": {
+            "Perm": 4
+          },
+          "At": {
+            "Perm": 4
+          },
+          "Perk": 1,
+          "Abil": [
+            {
+              "Enu": 17,
+              "Lvl": 2,
+              "Nat": true
+            }
+          ],
+          "Cosm": 6,
+          "Id": {
+            "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+            "Uni": 200
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 10,
+          "Loc": 1,
+          "Poi": {
+            "x": 3
+          },
+          "Exp": 2,
+          "Lvl": 2,
+          "Hp": {
+            "Perm": 8
+          },
+          "At": {
+            "Perm": 8
+          },
+          "Perk": 12,
+          "Abil": [
+            {
+              "Enu": 81,
+              "Lvl": 2,
+              "Nat": true
+            }
+          ],
+          "Cosm": 6,
+          "Rwrd": true,
+          "SpCT": 1,
+          "Id": {
+            "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+            "Uni": 55
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 28,
+          "Loc": 1,
+          "Poi": {
+            "x": 4
+          },
+          "Exp": 5,
+          "Lvl": 3,
+          "Hp": {
+            "Perm": 16
+          },
+          "At": {
+            "Perm": 12
+          },
+          "Abil": [
+            {
+              "Enu": 69,
+              "Lvl": 3,
+              "Nat": true
+            }
+          ],
+          "Cosm": 6,
+          "Id": {
+            "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+            "Uni": 80
+          },
+          "Pri": 3
+        }
+      ]
+    },
+    "MiSC": 5,
+    "MSBo": [],
+    "MiSh": [
+      {
+        "Own": 1,
+        "Enu": 30,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 4
+        },
+        "At": {
+          "Perm": 4
+        },
+        "Abil": [
+          {
+            "Enu": 22,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 274
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 30,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 4
+        },
+        "At": {
+          "Perm": 4
+        },
+        "Abil": [
+          {
+            "Enu": 22,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 277
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 66,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 8
+        },
+        "At": {
+          "Perm": 3
+        },
+        "Abil": [
+          {
+            "Enu": 54,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 275
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 68,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 2
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 86,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 276
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 2
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 75,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 273
+        },
+        "Pri": 3
+      }
+    ],
+    "SpSC": 2,
+    "SpSh": [
+      {
+        "Enu": 23,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 279
+        },
+        "Pri": 3,
+        "Fro": true
+      },
+      {
+        "Enu": 10,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 278
+        },
+        "Pri": 3,
+        "Fro": true
+      }
+    ],
+    "Adj": "Wavy",
+    "Nou": "Fungi",
+    "PrOu": 2,
+    "PrEn": [
+      53,
+      69,
+      80,
+      77,
+      45
+    ],
+    "PrES2": [
+      {
+        "Enu": 53,
+        "Id": {
+          "BoId": "1a50ff17-6168-92d5-5fb9-f9d05558b73b",
+          "Uni": 5
+        }
+      }
+    ],
+    "MiSu": 1,
+    "SpPl": [
+      79
+    ],
+    "Cosm": 6,
+    "Back": 39,
+    "Masc": 2,
+    "Entr": 1,
+    "Awar": {
+      "Type": 14,
+      "PercentPosition": 0.037,
+      "Year": 2026,
+      "Month": 8
+    },
+    "Rel": {
+      "Size": {
+        "x": 2,
+        "y": 1
+      },
+      "Items": [
+        null,
+        null
+      ]
+    },
+    "Hash": 152293464
+  },
+  "Opponent": {
+    "Id": "ec10a1a4-0f23-4f0e-818b-d31b2b5ebb09",
+    "DisplayName": "TypicalAirEnjoyer"
+  },
+  "OpponentBoard": {
+    "Id": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+    "UNC": 361,
+    "Sta": 4,
+    "LiMa": 6,
+    "Los": 5,
+    "LPM": 4,
+    "LoPs": 4,
+    "Vic": 6,
+    "Rec": 1,
+    "Tur": 15,
+    "GoSp": 10,
+    "Rold": 7,
+    "Ti": 6,
+    "BoCa": 99,
+    "Mins": {
+      "Size": {
+        "x": 5,
+        "y": 1
+      },
+      "Items": [
+        {
+          "Own": 1,
+          "Enu": 53,
+          "Loc": 1,
+          "Exp": 2,
+          "Lvl": 2,
+          "Hp": {
+            "Perm": 12
+          },
+          "At": {
+            "Perm": 11
+          },
+          "Perk": 13,
+          "Abil": [
+            {
+              "Enu": 38,
+              "Lvl": 2,
+              "Dur": 1
+            }
+          ],
+          "Rwrd": true,
+          "Id": {
+            "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+            "Uni": 50
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 69,
+          "Loc": 1,
+          "Poi": {
+            "x": 1
+          },
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 4,
+            "Temp": 7
+          },
+          "At": {
+            "Perm": 4
+          },
+          "Perk": 41,
+          "Abil": [
+            {
+              "Enu": 38,
+              "Lvl": 1,
+              "Nat": true,
+              "AcCo": 1
+            }
+          ],
+          "Rwrd": true,
+          "Id": {
+            "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+            "Uni": 100
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 80,
+          "Loc": 1,
+          "Poi": {
+            "x": 2
+          },
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 5
+          },
+          "At": {
+            "Perm": 2
+          },
+          "Perk": 12,
+          "Abil": [
+            {
+              "Enu": 66,
+              "Lvl": 1,
+              "Nat": true
+            }
+          ],
+          "Id": {
+            "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+            "Uni": 304
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 77,
+          "Loc": 1,
+          "Poi": {
+            "x": 3
+          },
+          "Exp": 2,
+          "Lvl": 2,
+          "Hp": {
+            "Perm": 12
+          },
+          "At": {
+            "Perm": 11
+          },
+          "Perk": 13,
+          "Abil": [
+            {
+              "Enu": 85,
+              "Lvl": 2,
+              "Nat": true
+            }
+          ],
+          "Rwrd": true,
+          "Id": {
+            "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+            "Uni": 209
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 45,
+          "Loc": 1,
+          "Poi": {
+            "x": 4
+          },
+          "Exp": 4,
+          "Lvl": 2,
+          "Hp": {
+            "Perm": 20
+          },
+          "At": {
+            "Perm": 10
+          },
+          "Perk": 1,
+          "Abil": [
+            {
+              "Enu": 25,
+              "Lvl": 2,
+              "Nat": true
+            }
+          ],
+          "Rwrd": true,
+          "SpCT": 1,
+          "Id": {
+            "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+            "Uni": 156
+          },
+          "Pri": 3
+        }
+      ]
+    },
+    "MiSC": 5,
+    "MSBo": [],
+    "MiSh": [
+      {
+        "Own": 1,
+        "Enu": 69,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 2
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 38,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Id": {
+          "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+          "Uni": 344
+        },
+        "Pri": 3,
+        "Fro": true,
+        "WFro": true
+      },
+      {
+        "Own": 1,
+        "Enu": 2,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 3
+        },
+        "At": {
+          "Perm": 6
+        },
+        "Abil": [
+          {
+            "Enu": 57,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Id": {
+          "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+          "Uni": 356
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 2,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 3
+        },
+        "At": {
+          "Perm": 6
+        },
+        "Abil": [
+          {
+            "Enu": 57,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Id": {
+          "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+          "Uni": 357
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 54,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 5
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 46,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Id": {
+          "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+          "Uni": 358
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 39,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 1
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 34,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Id": {
+          "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+          "Uni": 359
+        },
+        "Pri": 3
+      }
+    ],
+    "SpSC": 2,
+    "SpSh": [
+      {
+        "Enu": 63,
+        "Id": {
+          "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+          "Uni": 361
+        },
+        "Pri": 3
+      },
+      {
+        "Enu": 38,
+        "Id": {
+          "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+          "Uni": 360
+        },
+        "Pri": 3
+      }
+    ],
+    "Adj": "Lazy",
+    "Nou": "Boogeymen",
+    "PrOu": 1,
+    "PrEn": [
+      269,
+      20,
+      52,
+      10,
+      28
+    ],
+    "PrES2": [
+      {
+        "Enu": 53,
+        "Id": {
+          "BoId": "c722bbc1-d91e-44f6-bc65-5591388bce74",
+          "Uni": 50
+        }
+      }
+    ],
+    "SpPl": [
+      23
+    ],
+    "Back": 32,
+    "Masc": 3,
+    "Entr": 6,
+    "Awar": {
+      "Type": 10,
+      "PercentPosition": 0.0036,
+      "Year": 2026,
+      "Month": 8
+    },
+    "Rel": {
+      "Size": {
+        "x": 2,
+        "y": 1
+      },
+      "Items": [
+        null,
+        null
+      ]
+    },
+    "Hash": 1052529239
+  },
+  "ResultingBoard": {
+    "Id": "1a50ff17-6168-92d5-5fb9-f9d05558b73b",
+    "UNC": 10,
+    "Sta": 4,
+    "IsBa": true,
+    "Tur": 15,
+    "GoSp": 11,
+    "Rold": 2,
+    "Ti": 6,
+    "BoCa": 198,
+    "Mins": {
+      "Size": {
+        "x": 10,
+        "y": 1
+      },
+      "Items": [
+        null,
+        null,
+        null,
+        {
+          "Own": 1,
+          "Enu": 77,
+          "Loc": 1,
+          "Poi": {
+            "x": 3
+          },
+          "Lvl": 1,
+          "Hp": {
+            "Perm": 4
+          },
+          "At": {
+            "Perm": 6
+          },
+          "Abil": [
+            {
+              "Enu": 85,
+              "Lvl": 1,
+              "Nat": true
+            }
+          ],
+          "Cosm": 6,
+          "Rwrd": true,
+          "Id": {
+            "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+            "Uni": 272
+          },
+          "Pri": 3
+        },
+        {
+          "Own": 1,
+          "Enu": 269,
+          "Loc": 1,
+          "Poi": {
+            "x": 4
+          },
+          "Exp": 2,
+          "Lvl": 2,
+          "Hp": {
+            "Perm": 1
+          },
+          "At": {
+            "Perm": 1
+          },
+          "Abil": [
+            {
+              "Enu": 294,
+              "Lvl": 2,
+              "Nat": true
+            }
+          ],
+          "Cosm": 6,
+          "AtkC": 1,
+          "Id": {
+            "BoId": "1a50ff17-6168-92d5-5fb9-f9d05558b73b",
+            "Uni": 10
+          },
+          "Pri": 3
+        },
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "MiSC": 5,
+    "MSBo": [],
+    "MiSh": [
+      {
+        "Own": 1,
+        "Enu": 30,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 4
+        },
+        "At": {
+          "Perm": 4
+        },
+        "Abil": [
+          {
+            "Enu": 22,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 274
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 30,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 4
+        },
+        "At": {
+          "Perm": 4
+        },
+        "Abil": [
+          {
+            "Enu": 22,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 277
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 66,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 8
+        },
+        "At": {
+          "Perm": 3
+        },
+        "Abil": [
+          {
+            "Enu": 54,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 275
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Enu": 68,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 2
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 86,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 276
+        },
+        "Pri": 3
+      },
+      {
+        "Own": 1,
+        "Lvl": 1,
+        "Hp": {
+          "Perm": 2
+        },
+        "At": {
+          "Perm": 2
+        },
+        "Abil": [
+          {
+            "Enu": 75,
+            "Lvl": 1,
+            "Nat": true
+          }
+        ],
+        "Cosm": 6,
+        "Id": {
+          "BoId": "532d4456-8749-4ddf-a354-a43f1ccce8c7",
+          "Uni": 273
+        },
+        "Pri": 3
+      }
+    ],
+    "SpSC": 2,
+    "Adj": "Wavy",
+    "Nou": "Fungi",
+    "MiSu": 5,
+    "SpPl": [],
+    "Cosm": 6,
+    "Back": 39,
+    "Masc": 2,
+    "Entr": 1,
+    "Awar": {
+      "Type": 14,
+      "PercentPosition": 0.037,
+      "Year": 2026,
+      "Month": 8
+    },
+    "Rel": {
+      "Size": {
+        "x": 4,
+        "y": 1
+      },
+      "Items": [
+        null,
+        null,
+        null,
+        null
+      ]
+    }
+  },
+  "EndResult": -1792633211
+}

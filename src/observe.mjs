@@ -64,7 +64,7 @@ export async function observeCapture(normalized,dir,{onProgress=()=>{},worker:sh
   }
  }finally{if(!sharedWorker)worker.close();}
  const reference={schemaVersion:1,inputHash:normalized.metadata.inputHash,complete:capture.complete&&gaps.length===0&&initialVerified,
-  outcome:capture.outcome??null,captureComplete:capture.complete,coverage:capture.coverage,initialVerified,initialChecks,checkpoints,gaps,
+  terminalFrame:capture.terminalFrame??null,captureErrors:capture.errors??[],outcome:capture.outcome??null,captureComplete:capture.complete,coverage:capture.coverage,initialVerified,initialChecks,checkpoints,gaps,
   recognition:'Local SIFT sprite geometry and Lapsus Pro digit masks; confidence is an acceptance flag, not a calibrated probability.',
   unobservedFields:['experience','mana','equipment absence','equipment uses','internal identities'],source:dir};
  await writeFile(`${dir}/observations.json`,JSON.stringify(reference,null,2));
